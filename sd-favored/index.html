@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Favored & Guided | Faith-Inspired Engraving</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="navbar">
+    <div class="nav-left">
+        <img src="assets/logo.png" alt="Logo" class="logo" />
+        <span class="brand">Favored & Guided</span>
+    </div>
+    <nav class="nav-center">
+        <a href="#" onclick="showSection('hero')" class="active">Home</a>
+        <a href="#products" onclick="showSection('products')">Products</a>
+        <a href="#about" onclick="showSection('about')">About Us</a>
+    </nav>
+    <div class="nav-right" id="guest-buttons">
+        <button class="btn-outline" onclick="openModal('authModal')">Log In</button>
+        <button class="btn-primary" onclick="openModal('authModal')">Sign Up</button>
+    </div>
+</header>
+
+<main>
+    <section id="hero" class="hero">
+        <div class="hero-content">
+            <span class="badge">FAITH-INSPIRED CRAFTSMANSHIP</span>
+            <h1>Engrave Your Faith<br>Into Timeless Beauty</h1>
+            <p>Personalized engraving services guided by faith and crafted with love.</p>
+            <button class="btn-primary" onclick="showSection('products')">Explore Products →</button>
+        </div>
+    </section>
+
+    <section id="products" class="section" style="display:none;">
+        <div style="text-align: center; margin-bottom: 50px;">
+            <h2 class="section-title">Our Products</h2>
+            <p class="section-sub">Discover our collection of faith-inspired engravings.</p>
+        </div>
+        <div class="products-grid" id="products-container"></div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-col">
+            <h3>Favored & Guided</h3>
+            <p>Engraving your faith into timeless beauty.</p>
+            <div class="social-links" style="margin-top: 20px; display: flex; gap: 15px;">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="#" onclick="showSection('hero')">Home</a></li>
+                <li><a href="#" onclick="showSection('products')">Products</a></li>
+                <li><a href="#" onclick="showSection('about')">About us</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Reach Us</h4>
+            <p><i class="fas fa-phone"></i> (555) 123-4567</p>
+            <p><i class="fas fa-envelope"></i> info@favoredguide.com</p>
+        </div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2026 Favored Guided Engrave.</p></div>
+</footer>
+
+<div class="modal" id="authModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
+        
+        <div id="loginSection">
+            <h3 style="margin-bottom: 20px;">Log In</h3>
+            <input type="email" id="loginEmail" placeholder="Email" />
+            <input type="password" id="loginPassword" placeholder="Password" />
+            <button class="btn-primary" style="width:100%" onclick="loginUser()">Log In</button>
+            
+            <div style="text-align:center; margin: 25px 0; color: #bbb; font-size: 0.75rem; letter-spacing: 1px;">OR CONTINUE WITH</div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="btn-outline" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;" onclick="signInWithGoogle()">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="18" alt="Google"> Google
+                </button>
+                <button class="btn-outline" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;" onclick="signInWithFacebook()">
+                    <i class="fab fa-facebook" style="color: #1877F2; font-size: 1.1rem;"></i> Facebook
+                </button>
+            </div>
+            
+            <p class="modal-link" onclick="toggleAuth('signup')">Don’t have an account? Sign Up</p>
+        </div>
+
+        <div id="signupSection" style="display: none;">
+            <h3 style="margin-bottom: 20px;">Sign Up</h3>
+            <input type="text" id="signupName" placeholder="Full Name" />
+            <input type="email" id="signupEmail" placeholder="Email" />
+            <input type="password" id="signupPassword" placeholder="Password" />
+            <button class="btn-primary" style="width:100%" onclick="signupUser()">Create Account</button>
+            <p class="modal-link" onclick="toggleAuth('login')" style="margin-top:20px;">Already have an account? Log In</p>
+        </div>
+    </div>
+</div>
+
+<div id="chat-container" class="chat-container">
+    <div class="chat-header" onclick="toggleChat()">
+        <span><i class="fas fa-comment-dots"></i> Support</span>
+        <i class="fas fa-chevron-up" id="chat-icon"></i>
+    </div>
+    <div id="chat-body" class="chat-body" style="display: none;">
+        <div id="chat-messages" class="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type a message...">
+            <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="firebase-config.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
