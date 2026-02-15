@@ -1,0 +1,320 @@
+/* =========================================
+   1. THEME VARIABLES & BASE
+   ========================================= */
+:root {
+  --primary: #c06b45;      /* Terracotta/Copper from your design */
+  --primary-hover: #a65d3a;
+  --bg-cream: #faf6f1;     /* Soft boutique background */
+  --text-main: #2c1e14;    /* Deep brown for headings */
+  --text-muted: #5a4a3f;   /* Muted brown for descriptions */
+  --white: #ffffff;
+  --border-radius-lg: 30px; /* High-end rounded corners */
+  --border-radius-sm: 15px;
+  --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.04);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  color: var(--text-muted);
+  background-color: var(--bg-cream);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, h4 {
+  font-family: "Playfair Display", serif;
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+/* =========================================
+   2. BUTTONS (Boutique Rounded)
+   ========================================= */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(192, 107, 69, 0.25);
+  display: inline-block;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  background: var(--primary-hover);
+  box-shadow: 0 8px 25px rgba(192, 107, 69, 0.35);
+}
+
+.btn-outline {
+  border: 1px solid #ddd;
+  background: white;
+  color: var(--text-main);
+  padding: 10px 24px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background: #f8f8f8;
+  border-color: var(--text-main);
+}
+
+/* =========================================
+   3. NAVIGATION (Glassmorphism)
+   ========================================= */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 6%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.logo { width: 50px; height: auto; }
+.brand { font-weight: 700; font-size: 1.3rem; margin-left: 12px; color: var(--text-main); }
+
+.nav-center a {
+  margin: 0 20px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-center a:hover, .nav-center a.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* =========================================
+   4. HERO SECTION
+   ========================================= */
+.hero {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  padding: 0 8%;
+  background-image: radial-gradient(circle at center, rgba(192, 107, 69, 0.05) 0%, transparent 70%);
+}
+
+.hero h1 {
+  font-size: clamp(3rem, 6vw, 4.5rem);
+  line-height: 1.1;
+  margin-bottom: 25px;
+}
+
+.badge {
+  display: inline-block;
+  border: 1px solid var(--primary);
+  padding: 6px 18px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  color: var(--primary);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+/* =========================================
+   5. PRODUCT GRID & BOUTIQUE CARDS
+   ========================================= */
+.section { padding: 80px 8%; }
+.section-title { text-align: center; font-size: 2.8rem; margin-bottom: 15px; }
+.section-sub { text-align: center; color: var(--text-muted); margin-bottom: 50px; }
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 40px;
+}
+
+.product-card {
+  background: var(--white);
+  padding: 20px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+  transition: transform 0.3s ease;
+  border: 1px solid rgba(0,0,0,0.02);
+}
+
+.product-card:hover { transform: translateY(-10px); }
+
+.product-card img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.product-card .price {
+  font-size: 1.4rem;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 15px;
+  display: block;
+}
+
+/* =========================================
+   6. MODALS
+   ========================================= */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-box {
+  background: white;
+  padding: 40px;
+  border-radius: var(--border-radius-lg);
+  width: 90%;
+  max-width: 600px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  background: #fcfcfc;
+}
+
+/* =========================================
+   7. FOOTER (Dark Boutique Style)
+   ========================================= */
+.footer {
+  background-color: #000000; /* Dark for high contrast */
+  color: #ffffff;
+  margin-top: auto;
+  padding: 80px 8% 40px;
+}
+
+.footer-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 50px;
+}
+
+.footer-col h3, .footer-col h4 {
+  color: white;
+  margin-bottom: 20px;
+}
+
+.footer-col p { color: #999; font-size: 0.95rem; }
+
+.footer-col ul { list-style: none; }
+
+.footer-col ul li { margin-bottom: 12px; }
+
+.footer-col ul li a {
+  color: #999;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-col ul li a:hover { color: var(--primary); }
+
+.footer-bottom {
+  margin-top: 60px;
+  padding-top: 30px;
+  border-top: 1px solid #222;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* =========================================
+USER DROPDOWN MENU
+   ========================================= */
+.user-menu-dropdown {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 10px; 
+    margin-bottom: -10px; 
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: var(--white);
+    min-width: 220px;
+    box-shadow: var(--shadow-soft);
+    border-radius: var(--border-radius-sm);
+    z-index: 1100;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.05);
+    /* Prevent the menu from disappearing when moving the mouse down */
+    pointer-events: auto; 
+}
+
+/* Ensure the menu stays open when hovering over the content itself */
+.user-menu-dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    color: var(--text-main);
+    padding: 14px 20px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    width: 100%; /* Make the whole area clickable */
+    transition: background 0.2s ease;
+}
+
+.dropdown-content a:hover {
+    background-color: #faf6f1;
+    color: var(--primary);
+}
+
+/* Floating Chat */
+.chat-container { position: fixed; bottom: 20px; right: 20px; width: 320px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 3000; overflow: hidden; border: 1px solid rgba(0,0,0,0.05); }
+.chat-header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.chat-body { height: 400px; display: flex; flex-direction: column; }
+.chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.chat-input { display: flex; padding: 15px; border-top: 1px solid #eee; gap: 8px; }
+.chat-input input { margin-bottom: 0; border-radius: 25px; padding: 10px 15px; border: 1px solid #eee; flex: 1; }
+.chat-input button { background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
+
+/* Message Bubbles */
+.msg { padding: 10px 14px; border-radius: 18px; max-width: 80%; font-size: 0.9rem; line-height: 1.4; }
+.msg.user { background: #f0f0f0; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg.admin { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+/* Admin List */
+.user-tab { padding: 15px; border-radius: 12px; cursor: pointer; margin-bottom: 5px; transition: 0.2s; font-size: 0.85rem; border-bottom: 1px solid #f9f9f9; }
+.user-tab:hover { background: #faf6f1; }
+.user-tab.active { background: #faf6f1; border-left: 4px solid var(--primary); font-weight: 700; }
