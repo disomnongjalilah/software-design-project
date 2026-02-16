@@ -3,10 +3,8 @@ import {
     onAuthStateChanged, signOut, updatePassword 
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { 
-    collection, getDocs, doc, getDoc, updateDoc, query, where, addDoc 
+    collection, getDocs, doc, getDoc, updateDoc, query, where, addDoc, orderBy, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-import { collection, addDoc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 let currentUser = null;
 let currentProduct = null;
@@ -18,7 +16,7 @@ onAuthStateChanged(auth, async (user) => {
         loadUserOrders(user.uid);
         loadProducts();
     } else {
-        window.location.href = "index.html";
+        window.location.href = "/"; // Redirect to root for Vercel
     }
 });
 
@@ -37,7 +35,7 @@ window.showSection = (id) => {
 
 window.logoutUser = async () => {
     await signOut(auth);
-    window.location.href = "index.html";
+    window.location.href = "/"; // Redirect to root for Vercel
 }
 
 async function loadUserProfile(uid) {
@@ -48,7 +46,7 @@ async function loadUserProfile(uid) {
             const name = data.name || "User";
             
             document.getElementById('welcomeName').innerText = name;
-            document.getElementById('userNameDisplay').innerText = name; // UPDATED FOR DROPDOWN
+            document.getElementById('userNameDisplay').innerText = name; 
             document.getElementById('accountFullname').innerText = name;
             document.getElementById('accountEmail').innerText = data.email || currentUser.email;
             document.getElementById('accountPhone').innerText = data.phone || "N/A";
@@ -93,6 +91,8 @@ if(passForm) {
 
 async function loadUserOrders(uid) {
     const container = document.getElementById('userOrders');
+    if(!container) return;
+
     const q = query(collection(db, "orders"), where("userId", "==", uid));
     const snapshot = await getDocs(q);
 
@@ -102,8 +102,8 @@ async function loadUserOrders(uid) {
     }
 
     container.innerHTML = "";
-    snapshot.forEach(doc => {
-        const o = doc.data();
+    snapshot.forEach(docSnap => { // Changed 'doc' to 'docSnap'
+        const o = docSnap.data();
         container.innerHTML += `
             <div class="product-card" style="margin-bottom:15px; padding:15px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                 <div>
@@ -118,11 +118,13 @@ async function loadUserOrders(uid) {
 
 async function loadProducts() {
     const container = document.getElementById('products-container');
+    if(!container) return;
+
     const snapshot = await getDocs(collection(db, "products"));
-    container.innerHTML = ""; 
-    snapshot.forEach((doc) => {
-        const p = doc.data();
-        const safeProduct = encodeURIComponent(JSON.stringify({id: doc.id, ...p}));
+    container.innerHTML = "";
+    snapshot.forEach((docSnap) => { // Changed 'doc' to 'docSnap'
+        const p = docSnap.data();
+        const safeProduct = encodeURIComponent(JSON.stringify({id: docSnap.id, ...p}));
         container.innerHTML += `
             <div class="product-card">
                 <img src="${p.imageUrl}">
@@ -163,7 +165,6 @@ window.placeOrder = async () => {
     } catch(e) { alert(e.message); }
 }
 
-// Toggle Chat Window
 window.toggleChat = () => {
     const body = document.getElementById('chat-body');
     const icon = document.getElementById('chat-icon');
@@ -177,16 +178,17 @@ window.toggleChat = () => {
     }
 };
 
-// Listen for Real-time Messages
 function listenForMessages() {
     if (!currentUser) return;
     const q = query(collection(db, "chats"), where("userId", "==", currentUser.uid), orderBy("timestamp", "asc"));
     
     onSnapshot(q, (snapshot) => {
         const container = document.getElementById('chat-messages');
+        if(!container) return;
+
         container.innerHTML = "";
-        snapshot.forEach(doc => {
-            const m = doc.data();
+        snapshot.forEach(docSnap => { // Changed 'doc' to 'docSnap'
+            const m = docSnap.data();
             const side = m.sender === "user" ? "user" : "admin";
             container.innerHTML += `<div class="msg ${side}">${m.text}</div>`;
         });
@@ -194,7 +196,6 @@ function listenForMessages() {
     });
 }
 
-// Send Message
 window.sendMessage = async () => {
     const input = document.getElementById('chatInput');
     if (!input.value.trim() || !currentUser) return;
