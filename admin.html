@@ -13,9 +13,9 @@
 <header class="navbar">
     <div class="nav-left"><span class="brand">Admin Dashboard</span></div>
     <nav class="nav-center">
-        <a href="#" onclick="showAdminSection('products')" class="active">Inventory</a>
-        <a href="#" onclick="showAdminSection('orders')">Orders</a>
-        <a href="#" onclick="showAdminSection('admin-chat')">Messages</a>
+        <a href="javascript:void(0)" onclick="showAdminSection('products')" class="active" id="nav-products">Product Management</a>
+        <a href="javascript:void(0)" onclick="showAdminSection('orders')" id="nav-orders">Customer Orders</a>
+        <a href="javascript:void(0)" onclick="showAdminSection('admin-chat')" id="nav-admin-chat">Messages</a>
     </nav>
     <div class="nav-right"><button class="btn-primary" onclick="logoutAdmin()">Log Out</button></div>
 </header>
@@ -78,6 +78,6 @@
 </div>
 
 <script type="module" src="firebase-config.js"></script>
-<script type="module" src="admin.js"></script>
+<script type="module" src="admin.js?v=102"></script>
 </body>
 </html>
