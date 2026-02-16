@@ -317,4 +317,143 @@ USER DROPDOWN MENU
 /* Admin List */
 .user-tab { padding: 15px; border-radius: 12px; cursor: pointer; margin-bottom: 5px; transition: 0.2s; font-size: 0.85rem; border-bottom: 1px solid #f9f9f9; }
 .user-tab:hover { background: #faf6f1; }
+
 .user-tab.active { background: #faf6f1; border-left: 4px solid var(--primary); font-weight: 700; }
+
+
+/* Auth Modal Specifics */
+.auth-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+.auth-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    margin-bottom: 24px;
+    color: #1a1a1a;
+}
+
+/* Social Buttons */
+.social-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.social-btn {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 50px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 500;
+    color: #444;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.social-btn:hover { background: #f9f9f9; }
+
+/* Divider */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: #999;
+    font-size: 14px;
+}
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #eee;
+}
+.divider:not(:empty)::before { margin-right: 15px; }
+.divider:not(:empty)::after { margin-left: 15px; }
+
+/* Form Elements */
+.input-group {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    cursor: pointer;
+}
+
+.forgot-pass {
+    display: block;
+    text-align: right;
+    font-size: 12px;
+    color: #7a8a6a; /* Muted Olive */
+    margin-top: 8px;
+    text-decoration: none;
+}
+
+.input-hint {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Submission Button */
+.btn-auth-submit {
+    width: 100%;
+    background: #718360; /* The Screenshot Olive Green */
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.btn-auth-submit:hover { background: #5f6e51; }
+
+.auth-switch {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #666;
+}
+
+.auth-switch span {
+    color: #718360;
+    font-weight: 700;
+    cursor: pointer;
+}
