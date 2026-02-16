@@ -1,89 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Favored & Guided | Faith-Inspired Engraving</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    <header class="navbar">
-        <div class="nav-left">
-            <img src="logo.png" alt="Logo" class="logo">
-            <span class="brand">Favored & Guided</span>
+<header class="navbar">
+    <div class="nav-left">
+        <img src="logo.png" alt="Logo" class="logo" />
+        <span class="brand">Favored & Guided</span>
+    </div>
+    <nav class="nav-center">
+        <a href="javascript:void(0)" onclick="showSection('hero')" class="active">Home</a>
+        <a href="javascript:void(0)" onclick="showSection('products')">Products</a>
+        <a href="javascript:void(0)" onclick="showSection('about')">About Us</a>
+    </nav>
+    <div class="nav-right" id="guest-buttons">
+        <button class="btn-outline" onclick="openModal('authModal')">Log In</button>
+        <button class="btn-primary" onclick="openModal('authModal')">Sign Up</button>
+    </div>
+</header>
+
+<main>
+    <section id="hero" class="hero">
+        <div class="hero-content">
+            <span class="badge">FAITH-INSPIRED</span>
+            <h1>Engrave Your Faith<br>Into Timeless Beauty</h1>
+            <button class="btn-primary" onclick="showSection('products')">Explore Products →</button>
         </div>
-        <nav class="nav-center">
-            <a href="javascript:void(0)" onclick="showSection('hero')" class="active">Home</a>
-            <a href="javascript:void(0)" onclick="showSection('products')">Products</a>
-            <a href="javascript:void(0)" onclick="showSection('about')">About Us</a>
-        </nav>
-        <div class="nav-right" id="guest-buttons">
-            <button class="btn-outline" onclick="openModal('authModal')">Log In</button>
-            <button class="btn-primary" onclick="openModal('authModal')">Sign Up</button>
+    </section>
+
+    <section id="products" class="section" style="display:none;">
+        <h2 class="section-title">Our Products</h2>
+        <div class="products-grid" id="products-container"></div>
+    </section>
+</main>
+
+<div class="modal" id="authModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
+        <div id="loginSection">
+            <h3>Log In</h3>
+            <input type="email" id="loginEmail" placeholder="Email" />
+            <input type="password" id="loginPassword" placeholder="Password" />
+            <button class="btn-primary" style="width:100%" onclick="loginUser()">Log In</button>
+            <div style="text-align:center; margin: 20px 0; color: #bbb;">OR CONTINUE WITH</div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-outline" style="flex:1" onclick="signInWithGoogle()"><i class="fab fa-google"></i> Google</button>
+                <button class="btn-outline" style="flex:1" onclick="signInWithFacebook()"><i class="fab fa-facebook-f"></i> Facebook</button>
+            </div>
+            <p class="modal-link" onclick="toggleAuth('signup')">Create an account</p>
         </div>
-    </header>
-
-    <main>
-        <section id="hero" class="hero">
-            <div class="hero-content">
-                <span class="badge">FAITH-INSPIRED CRAFTSMANSHIP</span>
-                <h1>Engrave Your Faith<br>Into Timeless Beauty</h1>
-                <button class="btn-primary" onclick="showSection('products')">Explore Products →</button>
-            </div>
-        </section>
-
-        <section id="products" class="section" style="display:none;">
-            <h2 class="section-title">Our Products</h2>
-            <div class="products-grid" id="products-container"></div>
-        </section>
-    </main>
-
-    <div class="modal" id="authModal">
-        <div class="modal-box">
-            <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
-            
-            <div id="loginSection">
-                <h3>Log In</h3>
-                <input type="email" id="loginEmail" placeholder="Email">
-                <input type="password" id="loginPassword" placeholder="Password">
-                <button class="btn-primary" style="width:100%" onclick="loginUser()">Log In</button>
-                <div class="social-auth">
-                    <p>OR CONTINUE WITH</p>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-outline" style="flex: 1;" onclick="signInWithGoogle()"><i class="fab fa-google"></i> Google</button>
-                        <button class="btn-outline" style="flex: 1;" onclick="signInWithFacebook()"><i class="fab fa-facebook-f"></i> Facebook</button>
-                    </div>
-                </div>
-                <p class="modal-link" onclick="toggleAuth('signup')">Don’t have an account? Sign Up</p>
-            </div>
-
-            <div id="signupSection" style="display: none;">
-                <h3>Sign Up</h3>
-                <input type="text" id="signupName" placeholder="Full Name">
-                <input type="email" id="signupEmail" placeholder="Email">
-                <input type="password" id="signupPassword" placeholder="Password">
-                <input type="password" id="confirmPassword" placeholder="Confirm Password">
-                <button class="btn-primary" style="width:100%" onclick="signupUser()">Create Account</button>
-                <p class="modal-link" onclick="toggleAuth('login')">Already have an account? Log In</p>
-            </div>
+        <div id="signupSection" style="display: none;">
+            <h3>Sign Up</h3>
+            <input type="text" id="signupName" placeholder="Full Name" />
+            <input type="email" id="signupEmail" placeholder="Email" />
+            <input type="password" id="signupPassword" placeholder="Password" />
+            <input type="password" id="confirmPassword" placeholder="Confirm Password" /> <button class="btn-primary" style="width:100%" onclick="signupUser()">Sign Up</button>
+            <p class="modal-link" onclick="toggleAuth('login')">Already have an account? Log In</p>
         </div>
     </div>
+</div>
 
-    <div id="chat-container" class="chat-container">
-        <div class="chat-header" onclick="toggleChat()">
-            <span><i class="fas fa-comment-dots"></i> Support</span>
-            <i class="fas fa-chevron-up" id="chat-icon"></i>
-        </div>
-        <div id="chat-body" class="chat-body" style="display: none;">
-            <div id="chat-messages" class="chat-messages"></div>
-            <div class="chat-input">
-                <input type="text" id="chatInput" placeholder="Type a message...">
-                <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-            </div>
+<div id="chat-container" class="chat-container">
+    <div class="chat-header" onclick="toggleChat()">
+        <span><i class="fas fa-comment-dots"></i> Support</span>
+        <i class="fas fa-chevron-up" id="chat-icon"></i>
+    </div>
+    <div id="chat-body" class="chat-body" style="display: none;">
+        <div id="chat-messages" class="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type a message...">
+            <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
+</div>
 
-    <script type="module" src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
