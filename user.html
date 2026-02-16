@@ -17,9 +17,9 @@
     </div>
 
     <nav class="nav-center">
-        <a href="#" onclick="showSection('hero')" class="active" id="nav-hero">Home</a>
-        <a href="#" onclick="showSection('products')" id="nav-products">Shop</a>
-        <a href="#" onclick="showSection('about')" id="nav-about">About us</a>
+        <a href="javascript:void(0)" onclick="showSection('hero')" class="active" id="nav-hero">Home</a>
+        <a href="javascript:void(0)" onclick="showSection('products')" id="nav-products">Shop</a>
+        <a href="javascript:void(0)" onclick="showSection('about')" id="nav-about">About us</a>
     </nav>
 
     <div class="nav-right">
@@ -30,17 +30,17 @@
                 <i class="fas fa-caret-down"></i>
             </button>
             <div class="dropdown-content">
-                <a href="#" onclick="showSection('account')">
+                <a href="javascript:void(0)" onclick="showSection('account')">
                     <i class="fas fa-user-edit"></i> Profile Settings
                 </a>
-                <a href="#" onclick="showSection('account')">
+                <a href="javascript:void(0)" onclick="showSection('account')">
                     <i class="fas fa-shopping-bag"></i> My Orders
                 </a>
-                <a href="#" onclick="showSection('change-password')">
+                <a href="javascript:void(0)" onclick="showSection('change-password')">
                     <i class="fas fa-key"></i> Change Password
                 </a>
                 <hr>
-                <a href="#" onclick="logoutUser()" class="logout-link">
+                <a href="javascript:void(0)" onclick="logoutUser()" class="logout-link">
                     <i class="fas fa-sign-out-alt"></i> Log Out
                 </a>
             </div>
@@ -53,8 +53,10 @@
         <div class="hero-content">
             <span class="badge">WELCOME BACK</span>
             <h1>Peace be with you,<br><span id="welcomeName">User</span></h1>
-            <p>Your spiritual journey continues. Explore our latest faith-inspired collections.</p>
-            <button class="btn-primary" onclick="showSection('products')">Browse Shop →</button>
+            <p>Your spiritual journey continues. Explore our latest faith-inspired collections and handcrafted engravings.</p>
+            <div style="display: flex; gap: 15px;">
+                <button class="btn-primary" onclick="showSection('products')">Browse Shop →</button>
+            </div>
         </div>
     </section>
 
@@ -66,17 +68,19 @@
     </section>
 
     <section id="account" class="section" style="display:none;">
-        <div style="max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
-            <div class="product-card" style="text-align: left; padding: 30px;">
-                <h3>Profile</h3>
-                <p><strong>Name:</strong> <span id="accountFullname"></span></p>
-                <p><strong>Email:</strong> <span id="accountEmail"></span></p>
-                <p><strong>Phone:</strong> <span id="accountPhone"></span></p>
-                <button class="btn-outline" style="width:100%; margin-top:15px;" onclick="showSection('edit-details')">Edit Profile</button>
-            </div>
-            <div class="product-card" style="text-align: left; padding: 30px;">
-                <h3>My Orders</h3>
-                <div id="userOrders"></div>
+        <div style="max-width: 1000px; margin: 0 auto;">
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+                <div class="product-card" style="text-align: left; padding: 30px;">
+                    <h3>Profile</h3>
+                    <p><strong>Name:</strong> <span id="accountFullname"></span></p>
+                    <p><strong>Email:</strong> <span id="accountEmail"></span></p>
+                    <p><strong>Phone:</strong> <span id="accountPhone"></span></p>
+                    <button class="btn-outline" style="width:100%; margin-top:15px;" onclick="showSection('edit-details')">Edit Profile</button>
+                </div>
+                <div class="product-card" style="text-align: left; padding: 30px;">
+                    <h3>My Orders</h3>
+                    <div id="userOrders"></div>
+                </div>
             </div>
         </div>
     </section>
@@ -110,6 +114,18 @@
         <div class="footer-col">
             <h3>Favored & Guided</h3>
             <p>Engraving your faith into timeless beauty.</p>
+            <div class="social-links" style="margin-top: 20px; display: flex; gap: 15px;">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="javascript:void(0)" onclick="showSection('hero')">Home</a></li>
+                <li><a href="javascript:void(0)" onclick="showSection('products')">Products</a></li>
+                <li><a href="javascript:void(0)" onclick="showSection('about')">About us</a></li>
+            </ul>
         </div>
         <div class="footer-col">
             <h4>Reach Us</h4>
@@ -152,6 +168,6 @@
 </div>
 
 <script type="module" src="firebase-config.js"></script>
-<script type="module" src="user.js"></script>
+<script type="module" src="user.js?v=101"></script>
 </body>
 </html>
