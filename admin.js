@@ -9,7 +9,7 @@ import {
     collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, orderBy, onSnapshot, where 
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 import { 
-    ref, uploadBytes, getDownloadURL 
+    ref, uploadBytesResumable, getDownloadURL 
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
 
 let selectedUserId = null;
@@ -18,22 +18,19 @@ let selectedUserId = null;
 // 1. AUTH MONITOR & PROTECTION
 // ==========================================
 onAuthStateChanged(auth, (user) => {
-    // Only allow access if the email matches your specific admin email
     if (user && user.email === "admin@favored.com") {
         console.log("Admin Authorized:", user.email);
         loadInventory();
         loadOrders();
     } else {
         console.warn("Unauthorized access attempt.");
-        window.location.href = "/"; // Redirect for Vercel Clean URLs
+        window.location.href = "/"; 
     }
 });
 
 // ==========================================
 // 2. EXPORT FUNCTIONS TO WINDOW
 // ==========================================
-// These functions must be on the window object to work with onclick attributes in HTML
-
 window.showAdminSection = (id) => {
     const sections = ['products', 'orders', 'admin-chat'];
     sections.forEach(sec => {
@@ -43,7 +40,6 @@ window.showAdminSection = (id) => {
 
     if(id === 'admin-chat') loadChatUsers();
 
-    // Update Nav Active State
     document.querySelectorAll('.nav-center a').forEach(a => a.classList.remove('active'));
     const activeLink = document.querySelector(`[onclick="showAdminSection('${id}')"]`);
     if(activeLink) activeLink.classList.add('active');
@@ -69,14 +65,13 @@ window.logoutAdmin = async () => {
 };
 
 // ==========================================
-// 3. PRODUCT & STOCK MANAGEMENT
+// 3. PRODUCT & STOCK MANAGEMENT (Optimized Upload)
 // ==========================================
 
 async function loadInventory() {
     const container = document.getElementById('adminProducts');
     if(!container) return;
     
-    // Using onSnapshot for real-time stock and inventory updates
     onSnapshot(collection(db, "products"), (snapshot) => {
         container.innerHTML = "";
         snapshot.forEach(docSnap => {
@@ -106,7 +101,6 @@ window.updateStock = async (id, newStock) => {
 };
 
 window.addProduct = async () => {
-    console.log("Add Product process started...");
     const name = document.getElementById('addName').value;
     const price = document.getElementById('addPrice').value;
     const fileInput = document.getElementById('addImageFile');
@@ -114,58 +108,56 @@ window.addProduct = async () => {
 
     if (!name || !price || !file) return alert("Please fill all fields and select an image.");
 
-    // Visual feedback for the button
     const saveBtn = document.querySelector("#addProductModal .btn-primary");
-    saveBtn.innerText = "Uploading...";
     saveBtn.disabled = true;
 
     try {
-        // 1. Upload Image to Storage
         const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(snapshot.ref);
+        // Switched to resumable upload to show progress
+        const uploadTask = uploadBytesResumable(storageRef, file);
 
-        // 2. Save Document to Firestore
-        await addDoc(collection(db, "products"), {
-            name: name,
-            price: Number(price),
-            stock: 10, // Default initial stock
-            imageUrl: url,
-            createdAt: new Date()
-        });
-
-        alert("Product Added Successfully!");
-        window.closeModal('addProductModal');
-        
-        // Reset inputs
-        document.getElementById('addName').value = "";
-        document.getElementById('addPrice').value = "";
-        document.getElementById('addImageFile').value = "";
-    } catch(e) { 
-        alert("Error adding product: " + e.message); 
-    } finally {
-        saveBtn.innerText = "Save Product";
-        saveBtn.disabled = false;
-    }
+        uploadTask.on('state_changed', 
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                saveBtn.innerText = `Uploading: ${Math.round(progress)}%`;
+            }, 
+            (error) => { alert("Upload failed: " + error.message); saveBtn.disabled = false; }, 
+            async () => {
+                const url = await getDownloadURL(uploadTask.snapshot.ref);
+                await addDoc(collection(db, "products"), {
+                    name: name,
+                    price: Number(price),
+                    stock: 10,
+                    imageUrl: url,
+                    createdAt: new Date()
+                });
+                alert("Product Added Successfully!");
+                saveBtn.innerText = "Save Product";
+                saveBtn.disabled = false;
+                
+                // Reset inputs
+                document.getElementById('addName').value = "";
+                document.getElementById('addPrice').value = "";
+                document.getElementById('addImageFile').value = "";
+                window.closeModal('addProductModal');
+            }
+        );
+    } catch(e) { alert("Error: " + e.message); saveBtn.disabled = false; }
 };
 
 window.deleteProduct = async (id) => {
-    if(confirm("Are you sure you want to delete this product?")) {
-        try {
-            await deleteDoc(doc(db, "products", id));
-        } catch(e) { alert("Delete failed: " + e.message); }
+    if(confirm("Are you sure?")) {
+        await deleteDoc(doc(db, "products", id));
     }
 };
 
 // ==========================================
 // 4. ORDERS MANAGEMENT (Accept/Reject Logic)
 // ==========================================
-
 function loadOrders() {
     const list = document.getElementById('adminOrdersList');
     if(!list) return;
 
-    // Sort by date so new orders appear at the top
     const q = query(collection(db, "orders"), orderBy("date", "desc"));
     
     onSnapshot(q, (snapshot) => {
@@ -192,14 +184,12 @@ function loadOrders() {
 window.updateOrderStatus = async (id, status) => {
     try {
         await updateDoc(doc(db, "orders", id), { status: status });
-        alert(`Order ${status}`); // Customer will see this in user.html dashboard
     } catch(e) { console.error(e); }
 };
 
 // ==========================================
 // 5. CHAT SYSTEM
 // ==========================================
-
 function loadChatUsers() {
     const q = query(collection(db, "chats"), orderBy("timestamp", "desc"));
     onSnapshot(q, (snapshot) => {
