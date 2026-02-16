@@ -9,6 +9,7 @@ import {
 let currentUser = null;
 let currentProduct = null;
 
+// --- AUTH MONITOR ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
@@ -16,10 +17,11 @@ onAuthStateChanged(auth, async (user) => {
         loadUserOrders(user.uid);
         loadProducts();
     } else {
-        window.location.href = "/"; // Redirect to root for Vercel
+        window.location.href = "/"; // Clean URL redirect for Vercel
     }
 });
 
+// --- NAVIGATION ---
 window.showSection = (id) => {
     ['hero', 'products', 'account', 'edit-details', 'change-password'].forEach(sec => {
         const el = document.getElementById(sec);
@@ -31,13 +33,14 @@ window.showSection = (id) => {
     document.querySelectorAll('.nav-center a').forEach(a => a.classList.remove('active'));
     const navLink = document.getElementById('nav-' + id);
     if(navLink) navLink.classList.add('active');
-}
+};
 
 window.logoutUser = async () => {
     await signOut(auth);
-    window.location.href = "/"; // Redirect to root for Vercel
-}
+    window.location.href = "/";
+};
 
+// --- PROFILE MANAGEMENT ---
 async function loadUserProfile(uid) {
     try {
         const docSnap = await getDoc(doc(db, "users", uid));
@@ -45,16 +48,19 @@ async function loadUserProfile(uid) {
             const data = docSnap.data();
             const name = data.name || "User";
             
+            // Update UI elements from your user.html
             document.getElementById('welcomeName').innerText = name;
             document.getElementById('userNameDisplay').innerText = name; 
             document.getElementById('accountFullname').innerText = name;
             document.getElementById('accountEmail').innerText = data.email || currentUser.email;
-            document.getElementById('accountPhone').innerText = data.phone || "N/A";
+            document.getElementById('accountPhone').innerText = data.phone || "Not Set";
 
+            // Pre-fill Edit Forms
             document.getElementById('editFullname').value = name;
             document.getElementById('editPhone').value = data.phone || "";
+            document.getElementById('editEmail').value = data.email || currentUser.email;
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Error loading profile:", e); }
 }
 
 const editForm = document.getElementById('editDetailsForm');
@@ -66,10 +72,10 @@ if(editForm) {
                 name: document.getElementById('editFullname').value,
                 phone: document.getElementById('editPhone').value
             });
-            alert("Profile Updated!");
+            alert("Profile Updated Successfully!");
             loadUserProfile(currentUser.uid);
             window.showSection('account');
-        } catch(e) { alert(e.message); }
+        } catch(e) { alert("Error updating profile: " + e.message); }
     });
 }
 
@@ -78,51 +84,59 @@ if(passForm) {
     passForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const newPass = document.getElementById('newPassword').value;
-        if(newPass !== document.getElementById('confirmNewPassword').value) return alert("Passwords do not match");
+        const confirm = document.getElementById('confirmNewPassword').value;
+
+        if(newPass !== confirm) return alert("Passwords do not match");
 
         try {
             await updatePassword(currentUser, newPass);
             alert("Password Changed Successfully!");
             window.showSection('account');
             passForm.reset();
-        } catch(e) { alert(e.message); }
+        } catch(e) { alert("Error: " + e.message); }
     });
 }
 
+// --- ORDER TRACKING (Accept/Reject Status) ---
 async function loadUserOrders(uid) {
     const container = document.getElementById('userOrders');
     if(!container) return;
 
-    const q = query(collection(db, "orders"), where("userId", "==", uid));
-    const snapshot = await getDocs(q);
+    // Listen for real-time status updates from Admin
+    const q = query(collection(db, "orders"), where("userId", "==", uid), orderBy("date", "desc"));
+    onSnapshot(q, (snapshot) => {
+        if (snapshot.empty) {
+            container.innerHTML = "<p>No orders placed yet.</p>";
+            return;
+        }
 
-    if (snapshot.empty) {
-        container.innerHTML = "<p>No orders placed yet.</p>";
-        return;
-    }
-
-    container.innerHTML = "";
-    snapshot.forEach(docSnap => { // Changed 'doc' to 'docSnap'
-        const o = docSnap.data();
-        container.innerHTML += `
-            <div class="product-card" style="margin-bottom:15px; padding:15px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <h4 style="margin:0;">${o.productName}</h4>
-                    <p style="margin:5px 0; font-size:13px; color:#888;">Qty: ${o.quantity} | Total: ₱${o.totalPrice}</p>
-                    <span style="font-size:12px; font-weight:700; color:var(--primary)">Status: ${o.status}</span>
+        container.innerHTML = "";
+        snapshot.forEach(docSnap => {
+            const o = docSnap.data();
+            // Colors based on Admin status (Accepted/Rejected)
+            const statusColor = o.status === 'Accepted' ? '#27ae60' : (o.status === 'Rejected' ? '#e74c3c' : '#c06b45');
+            
+            container.innerHTML += `
+                <div class="product-card" style="margin-bottom:15px; padding:15px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="text-align:left;">
+                        <h4 style="margin:0;">${o.productName}</h4>
+                        <p style="margin:5px 0; font-size:13px; color:#888;">Qty: ${o.quantity} | Total: ₱${o.totalPrice}</p>
+                        <span style="font-size:12px; font-weight:700; color:${statusColor}">Status: ${o.status}</span>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        });
     });
 }
 
+// --- PRODUCT CATALOG ---
 async function loadProducts() {
     const container = document.getElementById('products-container');
     if(!container) return;
 
     const snapshot = await getDocs(collection(db, "products"));
     container.innerHTML = "";
-    snapshot.forEach((docSnap) => { // Changed 'doc' to 'docSnap'
+    snapshot.forEach((docSnap) => {
         const p = docSnap.data();
         const safeProduct = encodeURIComponent(JSON.stringify({id: docSnap.id, ...p}));
         container.innerHTML += `
@@ -143,7 +157,7 @@ window.openProductDetail = (encodedProduct) => {
     document.getElementById('detailPrice').innerText = "₱" + currentProduct.price;
     document.getElementById('detailImg').src = currentProduct.imageUrl;
     document.getElementById('productDetailsModal').style.display = 'flex';
-}
+};
 
 window.placeOrder = async () => {
     try {
@@ -156,15 +170,15 @@ window.placeOrder = async () => {
             quantity: document.getElementById('orderQty').value,
             totalPrice: currentProduct.price * document.getElementById('orderQty').value,
             personalization: document.getElementById('engravingText').value,
-            status: "Pending",
+            status: "Pending", // Admin will change this to Accepted or Rejected
             date: new Date().toISOString()
         });
         alert("Order Placed Successfully!");
         window.closeModal('productDetailsModal');
-        loadUserOrders(currentUser.uid);
-    } catch(e) { alert(e.message); }
-}
+    } catch(e) { alert("Order failed: " + e.message); }
+};
 
+// --- CHAT SYSTEM ---
 window.toggleChat = () => {
     const body = document.getElementById('chat-body');
     const icon = document.getElementById('chat-icon');
@@ -187,7 +201,7 @@ function listenForMessages() {
         if(!container) return;
 
         container.innerHTML = "";
-        snapshot.forEach(docSnap => { // Changed 'doc' to 'docSnap'
+        snapshot.forEach(docSnap => {
             const m = docSnap.data();
             const side = m.sender === "user" ? "user" : "admin";
             container.innerHTML += `<div class="msg ${side}">${m.text}</div>`;
