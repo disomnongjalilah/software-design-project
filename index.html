@@ -53,35 +53,78 @@
 </main>
 
 <div class="modal" id="authModal">
-    <div class="modal-box">
+    <div class="modal-box auth-card">
         <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
         
         <div id="loginSection">
-            <h3 style="margin-bottom: 20px;">Log In</h3>
-            <input type="email" id="loginEmail" placeholder="Email" />
-            <input type="password" id="loginPassword" placeholder="Password" />
-            <button class="btn-primary" style="width:100%" onclick="loginUser()">Log In</button>
-            
-            <div style="text-align:center; margin: 25px 0; color: #bbb; font-size: 0.75rem; letter-spacing: 1px;">OR CONTINUE WITH</div>
-            
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <button class="btn-outline" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;" onclick="signInWithGoogle()">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="18" alt="Google"> Google
+            <h2 class="auth-title">Log In</h2>
+            <div class="social-group">
+                <button class="social-btn" onclick="signInWithGoogle()">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="Google"> Continue with Google
                 </button>
-                <button class="btn-outline" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;" onclick="signInWithFacebook()">
-                    <i class="fab fa-facebook" style="color: #1877F2; font-size: 1.1rem;"></i> Facebook
+                <button class="social-btn" onclick="signInWithFacebook()">
+                    <i class="fab fa-facebook" style="color: #1877F2;"></i> Continue with Facebook
                 </button>
             </div>
-            <p class="modal-link" onclick="toggleAuth('signup')" style="cursor:pointer; text-align:center;">Don’t have an account? Sign Up</p>
+            
+            <div class="divider">or</div>
+            
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email" />
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="loginPassword" placeholder="Enter your password" />
+                    <i class="far fa-eye toggle-password"></i>
+                </div>
+                <a href="#" class="forgot-pass">Forgot password?</a>
+            </div>
+            
+            <button class="btn-auth-submit" onclick="loginUser()">Log In</button>
+            <p class="auth-switch">Don't have an account? <span onclick="toggleAuth('signup')">Sign Up</span></p>
         </div>
 
         <div id="signupSection" style="display: none;">
-            <h3 style="margin-bottom: 20px;">Sign Up</h3>
-            <input type="text" id="signupName" placeholder="Full Name" />
-            <input type="email" id="signupEmail" placeholder="Email" />
-            <input type="password" id="signupPassword" placeholder="Password" />
-            <input type="password" id="confirmPassword" placeholder="Confirm Password" /> <button class="btn-primary" style="width:100%" onclick="signupUser()">Create Account</button>
-            <p class="modal-link" onclick="toggleAuth('login')" style="cursor:pointer; text-align:center; margin-top:10px;">Already have an account? Log In</p>
+            <h2 class="auth-title">Sign Up</h2>
+            <div class="social-group">
+                <button class="social-btn" onclick="signInWithGoogle()">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="Google"> Sign up with Google
+                </button>
+                <button class="social-btn" onclick="signInWithFacebook()">
+                    <i class="fab fa-facebook" style="color: #1877F2;"></i> Sign up with Facebook
+                </button>
+            </div>
+            
+            <div class="divider">or</div>
+            
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" id="signupName" placeholder="Enter your full name" />
+            </div>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="signupEmail" placeholder="Enter your email" />
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="signupPassword" placeholder="Create a password" />
+                    <i class="far fa-eye toggle-password"></i>
+                </div>
+                <small class="input-hint">Must be at least 8 characters</small>
+            </div>
+            <div class="input-group">
+                <label>Confirm Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password" />
+                    <i class="far fa-eye toggle-password"></i>
+                </div>
+            </div>
+            
+            <button class="btn-auth-submit" onclick="signupUser()">Create Account</button>
+            <p class="auth-switch">Already have an account? <span onclick="toggleAuth('login')">Log In</span></p>
         </div>
     </div>
 </div>
