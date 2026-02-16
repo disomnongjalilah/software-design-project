@@ -1,4 +1,6 @@
 console.log("Admin.js Loaded Successfully");
+
+// --- FIREBASE IMPORTS ---
 import { auth, db, storage } from "./firebase-config.js";
 import { 
     onAuthStateChanged, signOut 
@@ -13,22 +15,24 @@ import {
 let selectedUserId = null;
 
 // ==========================================
-// 1. AUTH MONITOR
+// 1. AUTH MONITOR & PROTECTION
 // ==========================================
 onAuthStateChanged(auth, (user) => {
+    // Only allow access if the email matches your specific admin email
     if (user && user.email === "admin@favored.com") {
         console.log("Admin Authorized:", user.email);
         loadInventory();
         loadOrders();
     } else {
         console.warn("Unauthorized access attempt.");
-        window.location.href = "/"; 
+        window.location.href = "/"; // Redirect for Vercel Clean URLs
     }
 });
 
 // ==========================================
 // 2. EXPORT FUNCTIONS TO WINDOW
 // ==========================================
+// These functions must be on the window object to work with onclick attributes in HTML
 
 window.showAdminSection = (id) => {
     const sections = ['products', 'orders', 'admin-chat'];
@@ -39,6 +43,7 @@ window.showAdminSection = (id) => {
 
     if(id === 'admin-chat') loadChatUsers();
 
+    // Update Nav Active State
     document.querySelectorAll('.nav-center a').forEach(a => a.classList.remove('active'));
     const activeLink = document.querySelector(`[onclick="showAdminSection('${id}')"]`);
     if(activeLink) activeLink.classList.add('active');
@@ -79,7 +84,7 @@ async function loadInventory() {
             const stockStatus = p.stock > 0 ? `${p.stock} in stock` : "Out of Stock";
             container.innerHTML += `
                 <div class="product-card">
-                    <img src="${p.imageUrl}" alt="${p.name}">
+                    <img src="${p.imageUrl}" alt="${p.name}" style="width:100%; border-radius:15px;">
                     <h3>${p.name}</h3>
                     <p class="price">₱${p.price}</p>
                     <p style="font-size: 12px; color: ${p.stock > 0 ? 'green' : 'red'}">${stockStatus}</p>
@@ -101,35 +106,54 @@ window.updateStock = async (id, newStock) => {
 };
 
 window.addProduct = async () => {
+    console.log("Add Product process started...");
     const name = document.getElementById('addName').value;
     const price = document.getElementById('addPrice').value;
-    const stock = 10; // Default stock for new items
     const fileInput = document.getElementById('addImageFile');
     const file = fileInput ? fileInput.files[0] : null;
 
-    if (!name || !price || !file) return alert("Please fill all fields.");
+    if (!name || !price || !file) return alert("Please fill all fields and select an image.");
+
+    // Visual feedback for the button
+    const saveBtn = document.querySelector("#addProductModal .btn-primary");
+    saveBtn.innerText = "Uploading...";
+    saveBtn.disabled = true;
 
     try {
+        // 1. Upload Image to Storage
         const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
         const snapshot = await uploadBytes(storageRef, file);
         const url = await getDownloadURL(snapshot.ref);
 
+        // 2. Save Document to Firestore
         await addDoc(collection(db, "products"), {
             name: name,
             price: Number(price),
-            stock: Number(stock),
+            stock: 10, // Default initial stock
             imageUrl: url,
             createdAt: new Date()
         });
 
         alert("Product Added Successfully!");
         window.closeModal('addProductModal');
-    } catch(e) { alert("Error: " + e.message); }
+        
+        // Reset inputs
+        document.getElementById('addName').value = "";
+        document.getElementById('addPrice').value = "";
+        document.getElementById('addImageFile').value = "";
+    } catch(e) { 
+        alert("Error adding product: " + e.message); 
+    } finally {
+        saveBtn.innerText = "Save Product";
+        saveBtn.disabled = false;
+    }
 };
 
 window.deleteProduct = async (id) => {
-    if(confirm("Are you sure?")) {
-        await deleteDoc(doc(db, "products", id));
+    if(confirm("Are you sure you want to delete this product?")) {
+        try {
+            await deleteDoc(doc(db, "products", id));
+        } catch(e) { alert("Delete failed: " + e.message); }
     }
 };
 
@@ -141,6 +165,7 @@ function loadOrders() {
     const list = document.getElementById('adminOrdersList');
     if(!list) return;
 
+    // Sort by date so new orders appear at the top
     const q = query(collection(db, "orders"), orderBy("date", "desc"));
     
     onSnapshot(q, (snapshot) => {
@@ -167,7 +192,7 @@ function loadOrders() {
 window.updateOrderStatus = async (id, status) => {
     try {
         await updateDoc(doc(db, "orders", id), { status: status });
-        alert(`Order ${status}`);
+        alert(`Order ${status}`); // Customer will see this in user.html dashboard
     } catch(e) { console.error(e); }
 };
 
@@ -182,8 +207,8 @@ function loadChatUsers() {
         if(!list) return;
         
         const users = {};
-        snapshot.forEach(doc => {
-            const data = doc.data();
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
             if (!users[data.userId]) users[data.userId] = data.userEmail || "Guest User";
         });
         
@@ -207,8 +232,8 @@ window.selectUserChat = (uid) => {
         if(!container) return;
         
         container.innerHTML = "";
-        snapshot.forEach(doc => {
-            const m = doc.data();
+        snapshot.forEach(docSnap => {
+            const m = docSnap.data();
             const side = m.sender === "admin" ? "admin" : "user";
             container.innerHTML += `<div class="msg ${side}">${m.text}</div>`;
         });
