@@ -457,3 +457,9 @@ USER DROPDOWN MENU
     font-weight: 700;
     cursor: pointer;
 }
+
+.fa-google {
+    color: #DB4437; /* Official Google Red */
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
