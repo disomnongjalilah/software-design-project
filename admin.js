@@ -1,7 +1,10 @@
+console.log("Admin.js Loaded Successfully");
 import { auth, db, storage } from "./firebase-config.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { 
-    collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, orderBy 
+    onAuthStateChanged, signOut 
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { 
+    collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, orderBy, onSnapshot, where 
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 import { 
     ref, uploadBytes, getDownloadURL 
@@ -9,77 +12,37 @@ import {
 
 let selectedUserId = null;
 
-// Load unique users who messaged
-async function loadChatUsers() {
-    const q = query(collection(db, "chats"), orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
-        const list = document.getElementById('adminChatUserList');
-        const users = {};
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if (!users[data.userId]) users[data.userId] = data.userEmail;
-        });
-        
-        list.innerHTML = "";
-        Object.keys(users).forEach(uid => {
-            list.innerHTML += `<div class="user-tab ${selectedUserId === uid ? 'active' : ''}" onclick="selectUserChat('${uid}')">${users[uid]}</div>`;
-        });
-    });
-}
-
-window.selectUserChat = (uid) => {
-    selectedUserId = uid;
-    loadChatUsers(); // Refresh active state
-    listenToConversation(uid);
-};
-
-function listenToConversation(uid) {
-    const q = query(collection(db, "chats"), where("userId", "==", uid), orderBy("timestamp", "asc"));
-    onSnapshot(q, (snapshot) => {
-        const container = document.getElementById('adminChatMessages');
-        container.innerHTML = "";
-        snapshot.forEach(doc => {
-            const m = doc.data();
-            const side = m.sender === "admin" ? "admin" : "user";
-            container.innerHTML += `<div class="msg ${side}">${m.text}</div>`;
-        });
-        container.scrollTop = container.scrollHeight;
-    });
-}
-
-window.sendAdminMessage = async () => {
-    const input = document.getElementById('adminChatInput');
-    if (!input.value.trim() || !selectedUserId) return;
-
-    await addDoc(collection(db, "chats"), {
-        userId: selectedUserId,
-        text: input.value,
-        sender: "admin",
-        timestamp: new Date()
-    });
-    input.value = "";
-};
-
-// Add this to your admin sections switcher
-window.showAdminSection = (id) => {
-    ['products', 'orders', 'admin-chat'].forEach(sec => document.getElementById(sec).style.display = 'none');
-    document.getElementById(id).style.display = 'block';
-    if(id === 'admin-chat') loadChatUsers();
-};
-
-// ================= INITIALIZATION =================
+// ==========================================
+// 1. AUTH MONITOR
+// ==========================================
 onAuthStateChanged(auth, (user) => {
     if (user && user.email === "admin@favored.com") {
-        console.log("Admin Verified:", user.email);
+        console.log("Admin Authorized:", user.email);
         loadInventory();
         loadOrders();
     } else {
-        // If not admin, kick back to home
-        window.location.href = "index.html"; 
+        console.warn("Unauthorized access attempt.");
+        window.location.href = "/"; 
     }
 });
 
-// ================= 1. GLOBAL UI FUNCTIONS (RESTORED) =================
+// ==========================================
+// 2. EXPORT FUNCTIONS TO WINDOW
+// ==========================================
+
+window.showAdminSection = (id) => {
+    const sections = ['products', 'orders', 'admin-chat'];
+    sections.forEach(sec => {
+        const el = document.getElementById(sec);
+        if(el) el.style.display = (sec === id) ? 'block' : 'none';
+    });
+
+    if(id === 'admin-chat') loadChatUsers();
+
+    document.querySelectorAll('.nav-center a').forEach(a => a.classList.remove('active'));
+    const activeLink = document.querySelector(`[onclick="showAdminSection('${id}')"]`);
+    if(activeLink) activeLink.classList.add('active');
+};
 
 window.openModal = (id) => {
     const modal = document.getElementById(id);
@@ -91,183 +54,179 @@ window.closeModal = (id) => {
     if(modal) modal.style.display = 'none';
 };
 
-window.showAdminSection = (id) => {
-    // Sections
-    const productsSec = document.getElementById('products');
-    const ordersSec = document.getElementById('orders');
-    
-    if(productsSec) productsSec.style.display = 'none';
-    if(ordersSec) ordersSec.style.display = 'none';
-    
-    const target = document.getElementById(id);
-    if(target) target.style.display = 'block';
-    
-    // Update Active Nav Links
-    document.querySelectorAll('.nav-center a').forEach(a => a.classList.remove('active'));
-    if(event && event.target) event.target.classList.add('active');
-};
-
-window.switchTab = (tabName) => {
-    const activeTab = document.getElementById('tab-active');
-    const completedTab = document.getElementById('tab-completed');
-    
-    if(activeTab) activeTab.style.display = 'none';
-    if(completedTab) completedTab.style.display = 'none';
-    
-    const selected = document.getElementById('tab-' + tabName);
-    if(selected) selected.style.display = 'block';
-    
-    // Toggle button active class
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    if(event && event.target) event.target.classList.add('active');
-};
-
 window.logoutAdmin = async () => {
     try {
         await signOut(auth);
-        window.location.href = "index.html";
+        window.location.href = "/";
     } catch (err) {
         alert("Logout failed: " + err.message);
     }
 };
 
-// ================= 2. PRODUCT MANAGEMENT (RESTORED) =================
+// ==========================================
+// 3. PRODUCT & STOCK MANAGEMENT
+// ==========================================
 
-window.loadInventory = async () => {
+async function loadInventory() {
     const container = document.getElementById('adminProducts');
     if(!container) return;
-    container.innerHTML = "<p>Loading Boutique Inventory...</p>";
-
-    try {
-        const snapshot = await getDocs(collection(db, "products"));
+    
+    // Using onSnapshot for real-time stock and inventory updates
+    onSnapshot(collection(db, "products"), (snapshot) => {
         container.innerHTML = "";
-
         snapshot.forEach(docSnap => {
             const p = docSnap.data();
+            const stockStatus = p.stock > 0 ? `${p.stock} in stock` : "Out of Stock";
             container.innerHTML += `
                 <div class="product-card">
                     <img src="${p.imageUrl}" alt="${p.name}">
-                    <span class="category">${p.category}</span>
                     <h3>${p.name}</h3>
                     <p class="price">₱${p.price}</p>
-                    <button class="btn-outline" style="color:red; border-color:#ffcccc;" onclick="deleteProduct('${docSnap.id}')">
-                        Remove
+                    <p style="font-size: 12px; color: ${p.stock > 0 ? 'green' : 'red'}">${stockStatus}</p>
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <button class="btn-outline" style="flex:1; padding:5px; font-size:11px;" onclick="updateStock('${docSnap.id}', ${p.stock + 1})">+</button>
+                        <button class="btn-outline" style="flex:1; padding:5px; font-size:11px;" onclick="updateStock('${docSnap.id}', ${p.stock - 1})">-</button>
+                    </div>
+                    <button class="btn-outline" style="color:red; border-color:#ffcccc; width:100%; margin-top:10px;" onclick="deleteProduct('${docSnap.id}')">
+                        Remove Item
                     </button>
-                </div>
-            `;
+                </div>`;
         });
-    } catch(e) {
-        console.error("Load Inventory Error:", e);
-    }
+    });
+}
+
+window.updateStock = async (id, newStock) => {
+    if (newStock < 0) return;
+    await updateDoc(doc(db, "products", id), { stock: newStock });
 };
 
 window.addProduct = async () => {
     const name = document.getElementById('addName').value;
-    const cat = document.getElementById('addCategory').value;
     const price = document.getElementById('addPrice').value;
-    const desc = document.getElementById('addDesc').value;
+    const stock = 10; // Default stock for new items
     const fileInput = document.getElementById('addImageFile');
     const file = fileInput ? fileInput.files[0] : null;
 
-    if (!name || !price || !file) {
-        return alert("Please fill in Name, Price, and Image.");
-    }
-
-    const btn = event.target;
-    const originalText = btn.innerText;
-    btn.innerText = "Processing...";
-    btn.disabled = true;
+    if (!name || !price || !file) return alert("Please fill all fields.");
 
     try {
-        // Upload
         const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
         const snapshot = await uploadBytes(storageRef, file);
         const url = await getDownloadURL(snapshot.ref);
 
-        // Firestore
         await addDoc(collection(db, "products"), {
             name: name,
-            category: cat,
             price: Number(price),
-            description: desc,
+            stock: Number(stock),
             imageUrl: url,
             createdAt: new Date()
         });
 
-        alert("Product Added!");
+        alert("Product Added Successfully!");
         window.closeModal('addProductModal');
-        document.getElementById('addName').value = ""; // Clear form
-        loadInventory();
-    } catch(e) {
-        alert("Add Product Error: " + e.message);
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
+    } catch(e) { alert("Error: " + e.message); }
 };
 
 window.deleteProduct = async (id) => {
-    if(confirm("Permanently remove this item?")) {
-        try {
-            await deleteDoc(doc(db, "products", id));
-            loadInventory();
-        } catch(e) {
-            alert("Delete failed: " + e.message);
-        }
+    if(confirm("Are you sure?")) {
+        await deleteDoc(doc(db, "products", id));
     }
 };
 
-// ================= 3. ORDER MANAGEMENT (RESTORED) =================
+// ==========================================
+// 4. ORDERS MANAGEMENT (Accept/Reject Logic)
+// ==========================================
 
-window.loadOrders = async () => {
-    const activeBody = document.querySelector('#activeOrdersTable tbody');
-    const historyBody = document.querySelector('#historyOrdersTable tbody');
-    if(!activeBody) return;
+function loadOrders() {
+    const list = document.getElementById('adminOrdersList');
+    if(!list) return;
 
-    try {
-        const snapshot = await getDocs(collection(db, "orders"));
-        activeBody.innerHTML = "";
-        historyBody.innerHTML = "";
-
-        snapshot.forEach(docSnap => {
-            const o = docSnap.data();
-            const date = o.date ? new Date(o.date).toLocaleDateString() : "Recent";
-            
-            const row = `
+    const q = query(collection(db, "orders"), orderBy("date", "desc"));
+    
+    onSnapshot(q, (snapshot) => {
+        list.innerHTML = "";
+        snapshot.forEach(d => {
+            const o = d.data();
+            const statusColor = o.status === 'Accepted' ? '#27ae60' : (o.status === 'Rejected' ? '#e74c3c' : '#c06b45');
+            list.innerHTML += `
                 <tr>
-                    <td>${date}</td>
-                    <td><strong>${o.userEmail}</strong></td>
-                    <td>
-                        <strong>${o.productName}</strong> (x${o.quantity})
-                        ${o.personalization ? `<br><small style="color:var(--primary)">Engraving: ${o.personalization}</small>` : ''}
-                    </td>
+                    <td>${new Date(o.date).toLocaleDateString()}</td>
+                    <td>${o.userEmail}</td>
+                    <td>${o.productName}</td>
                     <td>₱${o.totalPrice}</td>
-                    <td><strong>${o.status}</strong></td>
+                    <td><span style="color:${statusColor}; font-weight:bold;">${o.status}</span></td>
                     <td>
-                        ${o.status === 'Pending' ? `
-                            <button class="btn-primary" style="padding:5px 10px; font-size:0.7rem;" onclick="updateStatus('${docSnap.id}', 'Accepted')">Accept</button>
-                            <button class="btn-outline" style="padding:5px 10px; font-size:0.7rem; color:red;" onclick="updateStatus('${docSnap.id}', 'Rejected')">Reject</button>
-                        ` : '-'}
+                        <button class="btn-primary" style="padding: 5px 10px; font-size: 11px; background:#27ae60;" onclick="updateOrderStatus('${d.id}', 'Accepted')">Accept</button>
+                        <button class="btn-outline" style="padding: 5px 10px; font-size: 11px; color:#e74c3c; border-color:#e74c3c;" onclick="updateOrderStatus('${d.id}', 'Rejected')">Reject</button>
                     </td>
-                </tr>
-            `;
-
-            if(o.status === 'Pending' || o.status === 'Accepted') {
-                activeBody.innerHTML += row;
-            } else {
-                historyBody.innerHTML += row;
-            }
+                </tr>`;
         });
-    } catch(e) {
-        console.error("Load Orders Error:", e);
-    }
-};
+    });
+}
 
-window.updateStatus = async (id, status) => {
+window.updateOrderStatus = async (id, status) => {
     try {
         await updateDoc(doc(db, "orders", id), { status: status });
-        loadOrders();
-    } catch (e) {
-        alert("Status update failed: " + e.message);
-    }
+        alert(`Order ${status}`);
+    } catch(e) { console.error(e); }
+};
+
+// ==========================================
+// 5. CHAT SYSTEM
+// ==========================================
+
+function loadChatUsers() {
+    const q = query(collection(db, "chats"), orderBy("timestamp", "desc"));
+    onSnapshot(q, (snapshot) => {
+        const list = document.getElementById('adminChatUserList');
+        if(!list) return;
+        
+        const users = {};
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (!users[data.userId]) users[data.userId] = data.userEmail || "Guest User";
+        });
+        
+        list.innerHTML = "";
+        Object.keys(users).forEach(uid => {
+            list.innerHTML += `
+                <div class="user-tab ${selectedUserId === uid ? 'active' : ''}" onclick="selectUserChat('${uid}')">
+                    <i class="fas fa-user-circle"></i> ${users[uid]}
+                </div>`;
+        });
+    });
+}
+
+window.selectUserChat = (uid) => {
+    selectedUserId = uid;
+    document.querySelectorAll('.user-tab').forEach(tab => tab.classList.remove('active'));
+    
+    const q = query(collection(db, "chats"), where("userId", "==", uid), orderBy("timestamp", "asc"));
+    onSnapshot(q, (snapshot) => {
+        const container = document.getElementById('adminChatMessages');
+        if(!container) return;
+        
+        container.innerHTML = "";
+        snapshot.forEach(doc => {
+            const m = doc.data();
+            const side = m.sender === "admin" ? "admin" : "user";
+            container.innerHTML += `<div class="msg ${side}">${m.text}</div>`;
+        });
+        container.scrollTop = container.scrollHeight;
+    });
+};
+
+window.sendAdminMessage = async () => {
+    const input = document.getElementById('adminChatInput');
+    if (!input || !input.value.trim() || !selectedUserId) return;
+
+    try {
+        await addDoc(collection(db, "chats"), {
+            userId: selectedUserId,
+            text: input.value,
+            sender: "admin",
+            timestamp: new Date()
+        });
+        input.value = "";
+    } catch(e) { console.error(e); }
 };
