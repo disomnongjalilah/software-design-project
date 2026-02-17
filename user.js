@@ -8,6 +8,7 @@ import {
 
 let currentUser = null;
 let currentProduct = null;
+window.productsData = {}; // NEW: Stores product data to avoid passing huge strings
 
 // --- AUTH MONITOR ---
 onAuthStateChanged(auth, async (user) => {
@@ -17,7 +18,7 @@ onAuthStateChanged(auth, async (user) => {
         loadUserOrders(user.uid);
         loadProducts();
     } else {
-        window.location.href = "/"; // Clean URL redirect for Vercel
+        window.location.href = "/"; // Redirect if not logged in
     }
 });
 
@@ -40,8 +41,6 @@ window.logoutUser = async () => {
     window.location.href = "/";
 };
 
-// ---Order-----
-
 // --- PROFILE MANAGEMENT ---
 async function loadUserProfile(uid) {
     try {
@@ -50,17 +49,16 @@ async function loadUserProfile(uid) {
             const data = docSnap.data();
             const name = data.name || "User";
             
-            // Update UI elements from your user.html
-            document.getElementById('welcomeName').innerText = name;
-            document.getElementById('userNameDisplay').innerText = name; 
-            document.getElementById('accountFullname').innerText = name;
-            document.getElementById('accountEmail').innerText = data.email || currentUser.email;
-            document.getElementById('accountPhone').innerText = data.phone || "Not Set";
+            // Update UI
+            if(document.getElementById('welcomeName')) document.getElementById('welcomeName').innerText = name;
+            if(document.getElementById('userNameDisplay')) document.getElementById('userNameDisplay').innerText = name; 
+            if(document.getElementById('accountFullname')) document.getElementById('accountFullname').innerText = name;
+            if(document.getElementById('accountEmail')) document.getElementById('accountEmail').innerText = data.email || currentUser.email;
+            if(document.getElementById('accountPhone')) document.getElementById('accountPhone').innerText = data.phone || "Not Set";
 
             // Pre-fill Edit Forms
-            document.getElementById('editFullname').value = name;
-            document.getElementById('editPhone').value = data.phone || "";
-            document.getElementById('editEmail').value = data.email || currentUser.email;
+            if(document.getElementById('editFullname')) document.getElementById('editFullname').value = name;
+            if(document.getElementById('editPhone')) document.getElementById('editPhone').value = data.phone || "";
         }
     } catch (e) { console.error("Error loading profile:", e); }
 }
@@ -99,13 +97,14 @@ if(passForm) {
     });
 }
 
-// --- ORDER TRACKING (Accept/Reject Status) ---
+// --- ORDER TRACKING (REAL-TIME) ---
 async function loadUserOrders(uid) {
-    const container = document.getElementById('userOrders');
+    const container = document.getElementById('userOrders'); // Matches your HTML ID
     if(!container) return;
 
-    // Listen for real-time status updates from Admin
     const q = query(collection(db, "orders"), where("userId", "==", uid), orderBy("date", "desc"));
+    
+    // Uses onSnapshot so orders appear instantly when you buy
     onSnapshot(q, (snapshot) => {
         if (snapshot.empty) {
             container.innerHTML = "<p>No orders placed yet.</p>";
@@ -115,14 +114,20 @@ async function loadUserOrders(uid) {
         container.innerHTML = "";
         snapshot.forEach(docSnap => {
             const o = docSnap.data();
-            // Colors based on Admin status (Accepted/Rejected)
-            const statusColor = o.status === 'Accepted' ? '#27ae60' : (o.status === 'Rejected' ? '#e74c3c' : '#c06b45');
+            // Status Color Logic
+            let statusColor = '#c06b45'; // Default (Pending)
+            if (o.status === 'Accepted') statusColor = '#27ae60';
+            if (o.status === 'Rejected') statusColor = '#e74c3c';
             
+            // Render Order Card
             container.innerHTML += `
-                <div class="product-card" style="margin-bottom:15px; padding:15px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="text-align:left;">
+                <div class="product-card" style="margin-bottom:15px; padding:15px; border:1px solid #eee; display:flex; gap:15px; align-items:center;">
+                    <img src="${o.imageUrl}" style="width:80px; height:80px; object-fit:cover; border-radius:10px;">
+                    <div style="flex:1; text-align:left;">
                         <h4 style="margin:0;">${o.productName}</h4>
-                        <p style="margin:5px 0; font-size:13px; color:#888;">Qty: ${o.quantity} | Total: ₱${o.totalPrice}</p>
+                        <p style="margin:5px 0; font-size:13px; color:#888;">
+                             Total: ₱${o.totalPrice} <br> Note: ${o.personalization || "None"}
+                        </p>
                         <span style="font-size:12px; font-weight:700; color:${statusColor}">Status: ${o.status}</span>
                     </div>
                 </div>
@@ -131,53 +136,77 @@ async function loadUserOrders(uid) {
     });
 }
 
-// --- PRODUCT CATALOG ---
+// --- PRODUCT CATALOG (FIXED FOR BASE64 IMAGES) ---
 async function loadProducts() {
     const container = document.getElementById('products-container');
     if(!container) return;
 
     const snapshot = await getDocs(collection(db, "products"));
     container.innerHTML = "";
+    
     snapshot.forEach((docSnap) => {
         const p = docSnap.data();
-        const safeProduct = encodeURIComponent(JSON.stringify({id: docSnap.id, ...p}));
+        
+        // 1. Store data globally so we don't have to pass huge strings in HTML
+        window.productsData[docSnap.id] = { id: docSnap.id, ...p };
+
+        // 2. Pass ONLY the ID to the function
         container.innerHTML += `
             <div class="product-card">
                 <img src="${p.imageUrl}">
                 <h3>${p.name}</h3>
                 <p class="price">₱${p.price}</p>
-                <button class="btn-primary" onclick="openProductDetail('${safeProduct}')">View Details</button>
+                <button class="btn-primary" onclick="openProductDetail('${docSnap.id}')">View Details</button>
             </div>
         `;
     });
 }
 
-window.openProductDetail = (encodedProduct) => {
-    currentProduct = JSON.parse(decodeURIComponent(encodedProduct));
+// Open Modal using the ID to lookup data
+window.openProductDetail = (id) => {
+    currentProduct = window.productsData[id]; // Retrieve from global storage
+    
+    if(!currentProduct) return;
+
     document.getElementById('detailName').innerText = currentProduct.name;
-    document.getElementById('detailDesc').innerText = currentProduct.description || "";
+    document.getElementById('detailDesc').innerText = currentProduct.description || "No description available.";
     document.getElementById('detailPrice').innerText = "₱" + currentProduct.price;
     document.getElementById('detailImg').src = currentProduct.imageUrl;
+    
+    // Reset inputs
+    document.getElementById('orderQty').value = 1;
+    document.getElementById('engravingText').value = "";
+    
     document.getElementById('productDetailsModal').style.display = 'flex';
 };
 
 window.placeOrder = async () => {
+    if(!currentProduct) return;
+
+    const qty = document.getElementById('orderQty').value;
+    const note = document.getElementById('engravingText').value;
+
     try {
         await addDoc(collection(db, "orders"), {
             userId: currentUser.uid,
             userEmail: currentUser.email,
             productName: currentProduct.name,
             productId: currentProduct.id,
-            price: currentProduct.price,
-            quantity: document.getElementById('orderQty').value,
-            totalPrice: currentProduct.price * document.getElementById('orderQty').value,
-            personalization: document.getElementById('engravingText').value,
-            status: "Pending", // Admin will change this to Accepted or Rejected
+            price: Number(currentProduct.price),
+            quantity: Number(qty),
+            totalPrice: Number(currentProduct.price) * Number(qty),
+            personalization: note,
+            imageUrl: currentProduct.imageUrl, // IMPORTANT: Save image for order history
+            status: "Pending", 
             date: new Date().toISOString()
         });
+        
         alert("Order Placed Successfully!");
         window.closeModal('productDetailsModal');
-    } catch(e) { alert("Order failed: " + e.message); }
+        window.showSection('order'); // Auto-redirect to My Orders page
+    } catch(e) { 
+        alert("Order failed: " + e.message); 
+    }
 };
 
 // --- CHAT SYSTEM ---
@@ -194,11 +223,13 @@ window.toggleChat = () => {
     }
 };
 
+let chatListener = null; // Store listener to avoid duplicates
 function listenForMessages() {
-    if (!currentUser) return;
+    if (!currentUser || chatListener) return;
+
     const q = query(collection(db, "chats"), where("userId", "==", currentUser.uid), orderBy("timestamp", "asc"));
     
-    onSnapshot(q, (snapshot) => {
+    chatListener = onSnapshot(q, (snapshot) => {
         const container = document.getElementById('chat-messages');
         if(!container) return;
 
@@ -227,4 +258,3 @@ window.sendMessage = async () => {
 };
 
 window.closeModal = (id) => document.getElementById(id).style.display = 'none';
-
