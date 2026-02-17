@@ -138,39 +138,82 @@ window.loadOrders = () => {
 
 window.updateOrderStatus = async (id, status) => await updateDoc(doc(db, "orders", id), { status });
 
-// --- CHAT SYSTEM ---
+
+// ==========================================
+// 5. CHAT SYSTEM (Improved)
+// ==========================================
 function loadChatUsers() {
-    onSnapshot(query(collection(db, "chats"), orderBy("timestamp", "desc")), (snapshot) => {
-        const list = document.getElementById('adminChatUserList');
+    const list = document.getElementById('adminChatUserList');
+    if(!list) return;
+
+    // Listen to all chats to find unique users
+    const q = query(collection(db, "chats"), orderBy("timestamp", "desc"));
+    
+    onSnapshot(q, (snapshot) => {
         const users = {};
-        snapshot.forEach(docSnap => { const d = docSnap.data(); users[d.userId] = d.userEmail || "Guest"; });
-        list.innerHTML = "";
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            // Store the most recent email for each unique ID
+            if (!users[data.userId]) {
+                users[data.userId] = data.userEmail || "Guest User";
+            }
+        });
+        
+        list.innerHTML = ""; // Clear list
+        
         Object.keys(users).forEach(uid => {
-            const div = document.createElement('div');
-            div.className = `user-tab ${selectedUserId === uid ? 'active' : ''}`;
-            div.innerHTML = `<i class="fas fa-user-circle"></i> ${users[uid]}`;
-            div.onclick = () => selectUserChat(uid);
-            list.appendChild(div);
+            const userDiv = document.createElement('div');
+            userDiv.className = `user-tab ${selectedUserId === uid ? 'active' : ''}`;
+            userDiv.style.padding = "15px";
+            userDiv.style.cursor = "pointer";
+            userDiv.style.borderBottom = "1px solid #eee";
+            userDiv.innerHTML = `<i class="fas fa-user-circle"></i> ${users[uid]}`;
+            
+            userDiv.onclick = () => {
+                // Update styling for all tabs
+                document.querySelectorAll('.user-tab').forEach(t => t.classList.remove('active'));
+                userDiv.classList.add('active');
+                selectUserChat(uid);
+            };
+            
+            list.appendChild(userDiv);
         });
     });
 }
 
+// Global variable to hold the unsubscribe function for the message listener
+let unsubscribeMessages = null;
+
 window.selectUserChat = (uid) => {
     selectedUserId = uid;
-    onSnapshot(query(collection(db, "chats"), where("userId", "==", uid), orderBy("timestamp", "asc")), (snapshot) => {
-        const container = document.getElementById('adminChatMessages');
-        container.innerHTML = "";
+    const container = document.getElementById('adminChatMessages');
+    if(!container) return;
+
+    // If there's an existing listener for another user, stop it
+    if (unsubscribeMessages) unsubscribeMessages();
+
+    const q = query(
+        collection(db, "chats"), 
+        where("userId", "==", uid), 
+        orderBy("timestamp", "asc")
+    );
+
+    unsubscribeMessages = onSnapshot(q, (snapshot) => {
+        container.innerHTML = ""; // Clear current view
+        
         snapshot.forEach(docSnap => {
             const m = docSnap.data();
-            container.innerHTML += `<div class="msg ${m.sender}">${m.text}</div>`;
+            const msgDiv = document.createElement('div');
+            // The class 'admin' or 'user' determines if it's left or right
+            msgDiv.className = `msg ${m.sender === 'admin' ? 'admin' : 'user'}`;
+            msgDiv.textContent = m.text;
+            container.appendChild(msgDiv);
         });
+        
+        // Auto-scroll to bottom
         container.scrollTop = container.scrollHeight;
+    }, (error) => {
+        console.error("Chat Listener Error:", error);
     });
 };
 
-window.sendAdminMessage = async () => {
-    const input = document.getElementById('adminChatInput');
-    if (!input.value.trim() || !selectedUserId) return;
-    await addDoc(collection(db, "chats"), { userId: selectedUserId, text: input.value, sender: "admin", timestamp: new Date() });
-    input.value = "";
-};
