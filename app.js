@@ -129,23 +129,33 @@ async function renderProducts() {
     const container = document.getElementById('products-container');
     if(!container) return;
     
+    // Show loading text while fetching
+    container.innerHTML = '<p style="text-align:center; width:100%;">Loading Collection...</p>';
+    
     try {
         const snapshot = await getDocs(collection(db, "products"));
-        container.innerHTML = "";
+        container.innerHTML = ""; // Clear loading message
         
+        if (snapshot.empty) {
+            container.innerHTML = '<p style="text-align:center; width:100%;">No products found.</p>';
+            return;
+        }
+
         snapshot.forEach((docSnap) => { 
             const p = docSnap.data();
-            const safeProduct = encodeURIComponent(JSON.stringify({id: docSnap.id, ...p})); // [cite: 42]
+            
+            // This HTML structure matches your CSS perfectly
             container.innerHTML += `
                 <div class="product-card">
-                    <img src="${p.imageUrl}">
+                    <img src="${p.imageUrl}" alt="${p.name}">
                     <h3>${p.name}</h3>
                     <p class="price">₱${p.price}</p>
-                    <button class="btn-primary" onclick="openModal('authModal')">View Details</button>
-                </div>`; // [cite: 43]
+                    <button class="btn-primary" onclick="addToCart('${docSnap.id}', '${p.name}')">View Details</button>
+                </div>`; 
         });
     } catch (error) {
         console.error("Error loading products:", error);
+        container.innerHTML = '<p style="text-align:center;">Unable to load products.</p>';
     }
 }
 
@@ -178,3 +188,4 @@ window.sendMessage = async () => {
 };
 
 document.addEventListener("DOMContentLoaded", renderProducts);
+
