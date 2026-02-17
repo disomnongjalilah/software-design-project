@@ -150,7 +150,7 @@ async function renderProducts() {
                     <img src="${p.imageUrl}" alt="${p.name}">
                     <h3>${p.name}</h3>
                     <p class="price">₱${p.price}</p>
-                    <button class="btn-primary" onclick="addToCart('${docSnap.id}', '${p.name}')">View Details</button>
+                    <button class="btn-primary" onclick="openModal('authModal')">View Details</button>
                 </div>`; 
         });
     } catch (error) {
@@ -188,4 +188,5 @@ window.sendMessage = async () => {
 };
 
 document.addEventListener("DOMContentLoaded", renderProducts);
+
 
