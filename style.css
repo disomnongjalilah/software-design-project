@@ -277,7 +277,7 @@ input, textarea {
    7. FOOTER (Dark Boutique Style)
    ========================================= */
 .footer {
-  background-color: #000000; /* Dark for high contrast */
+  background-color: --primary; /* Dark for high contrast */
   color: #ffffff;
   margin-top: auto;
   padding: 80px 8% 40px;
@@ -674,6 +674,7 @@ USER DROPDOWN MENU
 .step-item.active .step-text {
     color: var(--primary);
 }
+
 
 
 
