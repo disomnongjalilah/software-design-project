@@ -464,29 +464,37 @@ USER DROPDOWN MENU
     font-size: 1.2rem;
 }
 
+.modal-box {
+    position: relative; /* This is the "trap" for the close button */
+    background: white;
+    padding: 40px;
+    border-radius: 24px; /* Rounded corners as seen in your design */
+    width: 100%;
+    max-width: 400px;
+    margin: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
 .modal-close {
-    position: absolute;
+    position: absolute; /* Moves relative to the .modal-box above */
     top: 15px;
-    right: 20px;
-    background: #f1f1f1; /* Light gray background for the circle */
-    color: #888;
+    right: 15px;
+    background: #f4f4f4;
+    color: #718360; /* Using your brand green for the X */
     border: none;
-    font-size: 24px;
-    font-weight: 300;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%; /* Makes it a perfect circle */
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    line-height: 1;
-    z-index: 10;
+    font-size: 18px;
+    transition: all 0.2s ease;
 }
 
 .modal-close:hover {
-    background: #718360; /* Matches your brand's olive green */
+    background: #718360; /* Turns olive-green on hover */
     color: white;
-    transform: rotate(90deg); /* Subtle animation for a premium feel */
 }
+
