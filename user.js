@@ -3,9 +3,10 @@ import {
     onAuthStateChanged, signOut, updatePassword 
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { 
-    collection, getDocs, doc, getDoc, updateDoc, query, where, addDoc, orderBy, onSnapshot 
+    collection, getDocs, doc, getDoc, updateDoc, query, where, addDoc, orderBy, onSnapshot, setDoc, deleteDoc 
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+let userWishlist = new Set();
 let currentUser = null;
 let currentProduct = null;
 window.productsData = {}; // NEW: Stores product data to avoid passing huge strings
@@ -193,22 +194,36 @@ async function loadProducts() {
     const container = document.getElementById('products-container');
     if(!container) return;
 
+    // Load user's wishlist if logged in
+    if(currentUser) {
+        const wishSnap = await getDocs(collection(db, "users", currentUser.uid, "wishlist"));
+        userWishlist = new Set(wishSnap.docs.map(doc => doc.id));
+    }
+
     const snapshot = await getDocs(collection(db, "products"));
     container.innerHTML = "";
     
     snapshot.forEach((docSnap) => {
         const p = docSnap.data();
+        const id = docSnap.id;
         
-        // 1. Store data globally so we don't have to pass huge strings in HTML
-        window.productsData[docSnap.id] = { id: docSnap.id, ...p };
+        // Check if this product is in the wishlist
+        const isLiked = userWishlist.has(id) ? 'active' : '';
 
-        // 2. Pass ONLY the ID to the function
+        // Store data globally
+        window.productsData[id] = { id: id, ...p };
+
         container.innerHTML += `
             <div class="product-card">
-                <img src="${p.imageUrl}">
+                <button class="wishlist-btn ${isLiked}" onclick="toggleWishlist('${id}', this)">
+                    <i class="fas fa-heart"></i>
+                </button>
+
+                <img src="${p.imageUrl}" onclick="openProductDetail('${id}')" style="cursor:pointer;">
+                
                 <h3>${p.name}</h3>
                 <p class="price">₱${p.price}</p>
-                <button class="btn-primary" onclick="openProductDetail('${docSnap.id}')">View Details</button>
+                <button class="btn-primary" onclick="openProductDetail('${id}')">View Details</button>
             </div>
         `;
     });
@@ -309,7 +324,49 @@ window.sendMessage = async () => {
     input.value = "";
 };
 
+// --- WISHLIST TOGGLE ---
+window.toggleWishlist = async (productId, btnElement) => {
+    // 1. Check Login
+    if (!currentUser) {
+        alert("Please log in to save items to your wishlist!");
+        return;
+    }
+
+    // 2. Toggle the Visuals immediately (for speed)
+    const isActive = btnElement.classList.contains('active');
+    
+    if (isActive) {
+        // REMOVE from Wishlist
+        btnElement.classList.remove('active');
+        try {
+            await deleteDoc(doc(db, "users", currentUser.uid, "wishlist", productId));
+            userWishlist.delete(productId);
+        } catch(e) { 
+            console.error(e); 
+            btnElement.classList.add('active'); // Revert if error
+        }
+    } else {
+        // ADD to Wishlist
+        btnElement.classList.add('active');
+        try {
+            // We save the ID and the Name so we can display a list later if needed
+            const product = window.productsData[productId];
+            await setDoc(doc(db, "users", currentUser.uid, "wishlist", productId), {
+                name: product.name,
+                price: product.price,
+                imageUrl: product.imageUrl,
+                addedAt: new Date()
+            });
+            userWishlist.add(productId);
+        } catch(e) { 
+            console.error(e); 
+            btnElement.classList.remove('active'); // Revert if error
+        }
+    }
+};
+
 window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
 
 
 
