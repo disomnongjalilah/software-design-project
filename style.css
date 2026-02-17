@@ -463,3 +463,30 @@ USER DROPDOWN MENU
     margin-right: 10px;
     font-size: 1.2rem;
 }
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: #f1f1f1; /* Light gray background for the circle */
+    color: #888;
+    border: none;
+    font-size: 24px;
+    font-weight: 300;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%; /* Makes it a perfect circle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1;
+    z-index: 10;
+}
+
+.modal-close:hover {
+    background: #718360; /* Matches your brand's olive green */
+    color: white;
+    transform: rotate(90deg); /* Subtle animation for a premium feel */
+}
