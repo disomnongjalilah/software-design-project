@@ -217,3 +217,38 @@ window.selectUserChat = (uid) => {
     });
 };
 
+window.sendAdminMessage = async () => {
+    const input = document.getElementById('adminChatInput');
+    
+    // 1. Check if an input exists
+    if (!input) return console.error("Could not find input field 'adminChatInput'");
+
+    const messageText = input.value.trim();
+
+    // 2. Check if text is empty
+    if (!messageText) return;
+
+    // 3. Check if a user is selected
+    if (!selectedUserId) {
+        alert("Please select a customer from the left sidebar first.");
+        return;
+    }
+
+    try {
+        // 4. Send to Firestore
+        await addDoc(collection(db, "chats"), {
+            userId: selectedUserId,
+            text: messageText,
+            sender: "admin", // This tells the app to put the bubble on the right
+            timestamp: new Date()
+        });
+
+        // 5. Clear input on success
+        input.value = "";
+        console.log("Message sent to:", selectedUserId);
+
+    } catch (e) {
+        console.error("Send Error:", e);
+        alert("Failed to send: " + e.message);
+    }
+};
