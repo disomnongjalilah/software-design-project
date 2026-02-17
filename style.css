@@ -192,11 +192,37 @@ h1, h2, h3, h4 {
 }
 
 .modal-box {
-  background: white;
-  padding: 40px;
-  border-radius: var(--border-radius-lg);
-  width: 90%;
-  max-width: 600px;
+    position: relative; /* This is the "trap" for the close button */
+    background: white;
+    padding: 40px;
+    border-radius: 24px; /* Rounded corners as seen in your design */
+    width: 100%;
+    max-width: 400px;
+    margin: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.modal-close {
+    position: absolute; /* Moves relative to the .modal-box above */
+    top: 15px;
+    right: 15px;
+    background: #f4f4f4;
+    color: var(--primary); /* Using your brand green for the X */
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: var(--primary); /* Turns olive-green on hover */
+    color: white;
 }
 
 input, textarea {
@@ -462,40 +488,6 @@ USER DROPDOWN MENU
     color: #DB4437; /* Official Google Red */
     margin-right: 10px;
     font-size: 1.2rem;
-}
-
-.modal-box {
-    position: relative; /* This is the "trap" for the close button */
-    background: white;
-    padding: 40px;
-    border-radius: 24px; /* Rounded corners as seen in your design */
-    width: 100%;
-    max-width: 400px;
-    margin: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-.modal-close {
-    position: absolute; /* Moves relative to the .modal-box above */
-    top: 15px;
-    right: 15px;
-    background: #f4f4f4;
-    color: var(--primary); /* Using your brand green for the X */
-    border: none;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 18px;
-    transition: all 0.2s ease;
-}
-
-.modal-close:hover {
-    background: var(--primary); /* Turns olive-green on hover */
-    color: white;
 }
 
 
