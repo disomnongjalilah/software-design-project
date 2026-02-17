@@ -3,7 +3,8 @@ import { auth, db } from "./firebase-config.js";
 import { 
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
-    signOut, 
+    signOut,
+    getAuth,
     onAuthStateChanged,
     GoogleAuthProvider, 
     FacebookAuthProvider, 
@@ -31,6 +32,54 @@ onAuthStateChanged(auth, async (user) => {
         if(userBtns) userBtns.style.display = "none";
     }
 });
+
+// --- SOCIAL LOGIN LOGIC ---
+
+// Google Login
+window.loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        
+        // Check if user exists in Firestore, if not, create them
+        await syncUserToFirestore(user);
+        
+        window.location.href = "user.html"; 
+    } catch (error) {
+        alert("Google Login Failed: " + error.message);
+    }
+};
+
+// Facebook Login
+window.loginWithFacebook = async () => {
+    const provider = new FacebookAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        
+        await syncUserToFirestore(user);
+        
+        window.location.href = "user.html";
+    } catch (error) {
+        alert("Facebook Login Failed: " + error.message);
+    }
+};
+
+// Helper to ensure social users have a profile in your 'users' collection
+async function syncUserToFirestore(user) {
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
+
+    if (!docSnap.exists()) {
+        await setDoc(userRef, {
+            name: user.displayName,
+            email: user.email,
+            phone: user.phoneNumber || "Not Set",
+            createdAt: new Date()
+        });
+    }
+}
 
 // --- EXPORT TO WINDOW (Fixes Click Issue) ---
 
@@ -197,6 +246,7 @@ window.sendMessage = async () => {
 };
 
 document.addEventListener("DOMContentLoaded", renderProducts);
+
 
 
 
