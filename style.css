@@ -470,7 +470,7 @@ USER DROPDOWN MENU
     cursor: pointer;
 }
 
-.btn-auth-submit:hover { background: #5f6e51; }
+.btn-auth-submit:hover { background: primary-hover: #a65d3a; }
 
 .auth-switch {
     margin-top: 20px;
@@ -489,6 +489,7 @@ USER DROPDOWN MENU
     margin-right: 10px;
     font-size: 1.2rem;
 }
+
 
 
 
