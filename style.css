@@ -177,6 +177,12 @@ h1, h2, h3, h4 {
   display: block;
 }
 
+
+.order-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 40px;
+}
 /* =========================================
    6. MODALS
    ========================================= */
@@ -489,6 +495,7 @@ USER DROPDOWN MENU
     margin-right: 10px;
     font-size: 1.2rem;
 }
+
 
 
 
