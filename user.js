@@ -34,6 +34,10 @@ window.showSection = (id) => {
     const target = document.getElementById(id);
     if(target) target.style.display = 'block';
 
+    if(id === 'wishlist'){
+        loadUserWishlist();
+    }
+
     document.querySelectorAll('.nav-center a').forEach(a => a.classList.remove('active'));
     const navLink = document.getElementById('nav-' + id);
     if(navLink) navLink.classList.add('active');
@@ -141,6 +145,47 @@ async function loadUserOrders(uid) {
             `;
         });
     });
+}
+
+async function loadUserWishlist() {
+    const container = document.getElementById('wishlist-container');
+    if (!container || !currentUser) return;
+
+    container.innerHTML = "<p style='text-align:center;'>Loading your favorites...</p>";
+
+    try {
+        const wishSnap = await getDocs(collection(db, "users", currentUser.uid, "wishlist"));
+        
+        if (wishSnap.empty) {
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 50px;">
+                    <i class="fas fa-heart" style="font-size: 50px; color: #eee; margin-bottom: 20px;"></i>
+                    <p>Your wishlist is empty.</p>
+                    <button class="btn-primary" onclick="showSection('products')">Go Shopping</button>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = "";
+        wishSnap.forEach(docSnap => {
+            const p = docSnap.data();
+            const id = docSnap.id;
+
+            container.innerHTML += `
+                <div class="product-card">
+                    <button class="wishlist-btn active" onclick="toggleWishlist('${id}', this); loadUserWishlist();">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                    <img src="${p.imageUrl}" alt="${p.name}">
+                    <h3>${p.name}</h3>
+                    <p class="price">₱${p.price}</p>
+                    <button class="btn-primary" onclick="openProductDetail('${id}')">View Details</button>
+                </div>`;
+        });
+    } catch (e) {
+        console.error("Wishlist Error:", e);
+        container.innerHTML = "<p>Error loading wishlist.</p>";
+    }
 }
 
 // --- HELPER: Generates the Step Tracker HTML ---
@@ -401,6 +446,7 @@ window.toggleWishlist = async (productId, btnElement) => {
 };
 
 window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
 
 
 
