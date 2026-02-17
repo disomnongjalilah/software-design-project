@@ -418,7 +418,7 @@ USER DROPDOWN MENU
     display: block;
     text-align: right;
     font-size: 12px;
-    color: #7a8a6a; /* Muted Olive */
+    color: var(--bg-cream); /* Muted Olive */
     margin-top: 8px;
     text-decoration: none;
 }
@@ -433,7 +433,7 @@ USER DROPDOWN MENU
 /* Submission Button */
 .btn-auth-submit {
     width: 100%;
-    background: #718360; /* The Screenshot Olive Green */
+    background: var(--bg-cream); /* The Screenshot Olive Green */
     color: white;
     padding: 14px;
     border: none;
@@ -466,7 +466,7 @@ USER DROPDOWN MENU
 
 .modal-box {
     position: relative; /* This is the "trap" for the close button */
-    background: var(--primary);
+    background: white;
     padding: 40px;
     border-radius: 24px; /* Rounded corners as seen in your design */
     width: 100%;
@@ -497,5 +497,6 @@ USER DROPDOWN MENU
     background: var(--primary); /* Turns olive-green on hover */
     color: white;
 }
+
 
 
