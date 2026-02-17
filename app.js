@@ -129,12 +129,11 @@ async function renderProducts() {
     const container = document.getElementById('products-container');
     if(!container) return;
     
-    // Show loading text while fetching
     container.innerHTML = '<p style="text-align:center; width:100%;">Loading Collection...</p>';
     
     try {
         const snapshot = await getDocs(collection(db, "products"));
-        container.innerHTML = ""; // Clear loading message
+        container.innerHTML = ""; 
         
         if (snapshot.empty) {
             container.innerHTML = '<p style="text-align:center; width:100%;">No products found.</p>';
@@ -143,10 +142,14 @@ async function renderProducts() {
 
         snapshot.forEach((docSnap) => { 
             const p = docSnap.data();
+            const id = docSnap.id;
             
-            // This HTML structure matches your CSS perfectly
             container.innerHTML += `
                 <div class="product-card">
+                    <button class="wishlist-btn" onclick="handleGuestWishlist()">
+                        <i class="fas fa-heart"></i>
+                    </button>
+
                     <img src="${p.imageUrl}" alt="${p.name}">
                     <h3>${p.name}</h3>
                     <p class="price">₱${p.price}</p>
@@ -158,6 +161,12 @@ async function renderProducts() {
         container.innerHTML = '<p style="text-align:center;">Unable to load products.</p>';
     }
 }
+
+// Helper function to prompt login when guest clicks heart
+window.handleGuestWishlist = () => {
+    alert("Please log in to save items to your wishlist!");
+    window.openModal('authModal');
+};
 
 // --- CHAT LOGIC ---
 
@@ -188,5 +197,6 @@ window.sendMessage = async () => {
 };
 
 document.addEventListener("DOMContentLoaded", renderProducts);
+
 
 
