@@ -459,7 +459,7 @@ USER DROPDOWN MENU
 /* Submission Button */
 .btn-auth-submit {
     width: 100%;
-    background: var(--bg-cream); /* The Screenshot Olive Green */
+    background: var(--primary); /* The Screenshot Olive Green */
     color: white;
     padding: 14px;
     border: none;
@@ -489,6 +489,7 @@ USER DROPDOWN MENU
     margin-right: 10px;
     font-size: 1.2rem;
 }
+
 
 
 
