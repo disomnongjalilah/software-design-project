@@ -374,10 +374,32 @@ USER DROPDOWN MENU
 .chat-input input { margin-bottom: 0; border-radius: 25px; padding: 10px 15px; border: 1px solid #eee; flex: 1; }
 .chat-input button { background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
 
+
 /* Message Bubbles */
-.msg { padding: 10px 14px; border-radius: 18px; max-width: 80%; font-size: 0.9rem; line-height: 1.4; }
-.msg.user { background: #f0f0f0; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
-.msg.admin { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+.msg { 
+    padding: 10px 14px; 
+    border-radius: 18px; 
+    max-width: 80%; 
+    font-size: 0.9rem; 
+    line-height: 1.4; 
+    word-wrap: break-word; /* Prevents long words from breaking the layout */
+}
+
+/* CUSTOMER MESSAGES (On the Right) */
+.msg.user { 
+    background: var(--primary); 
+    color: white; 
+    align-self: flex-end; /* Moves bubble to the right */
+    border-bottom-right-radius: 4px; 
+}
+
+/* ADMIN REPLIES (On the Left) */
+.msg.admin { 
+    background: #f0f0f0; 
+    color: #333; 
+    align-self: flex-start; /* Moves bubble to the left */
+    border-bottom-left-radius: 4px; 
+}}
 
 /* Admin List */
 .user-tab { padding: 15px; border-radius: 12px; cursor: pointer; margin-bottom: 5px; transition: 0.2s; font-size: 0.85rem; border-bottom: 1px solid #f9f9f9; }
@@ -650,6 +672,7 @@ USER DROPDOWN MENU
 .step-item.active .step-text {
     color: var(--primary);
 }
+
 
 
 
