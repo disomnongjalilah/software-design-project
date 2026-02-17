@@ -98,44 +98,64 @@ if(passForm) {
 }
 
 // --- ORDER TRACKING (REAL-TIME) ---
+// --- ORDER TRACKING (REAL-TIME) ---
 async function loadUserOrders(uid) {
-    const container = document.getElementById('order-container'); // Matches your HTML ID
+    const container = document.getElementById('order-container'); 
     if(!container) return;
 
-    const q = query(collection(db, "orders"), where("userId", "==", uid), orderBy("date", "desc"));
+    // FIX: Removed 'orderBy' temporarily so it works without an Index
+    const q = query(
+        collection(db, "orders"), 
+        where("userId", "==", uid) 
+    );
     
-    // Uses onSnapshot so orders appear instantly when you buy
     onSnapshot(q, (snapshot) => {
         if (snapshot.empty) {
-            container.innerHTML = "<p>No orders placed yet.</p>";
+            container.innerHTML = "<p style='text-align:center;'>No orders placed yet.</p>";
             return;
         }
 
         container.innerHTML = "";
         snapshot.forEach(docSnap => {
             const o = docSnap.data();
+            
             // Status Color Logic
-            let statusColor = '#c06b45'; // Default (Pending)
-            if (o.status === 'Accepted') statusColor = '#27ae60';
-            if (o.status === 'Rejected') statusColor = '#e74c3c';
+            let statusColor = '#c06b45'; // Default Terracotta (Pending)
+            let statusBg = '#faf6f1';    // Light Cream
+            
+            if (o.status === 'Accepted') { 
+                statusColor = '#27ae60'; // Green
+                statusBg = '#eafaf1';
+            }
+            if (o.status === 'Rejected') { 
+                statusColor = '#e74c3c'; // Red
+                statusBg = '#fdedec';
+            }
             
             // Render Order Card
             container.innerHTML += `
-                <div class="product-card" style="margin-bottom:15px; padding:15px; border:1px solid #eee; display:flex; gap:15px; align-items:center;">
+                <div class="product-card" style="margin-bottom:15px; padding:20px; border:1px solid #eee; display:flex; gap:15px; align-items:center; background:white;">
                     <img src="${o.imageUrl}" style="width:80px; height:80px; object-fit:cover; border-radius:10px;">
                     <div style="flex:1; text-align:left;">
                         <h4 style="margin:0;">${o.productName}</h4>
                         <p style="margin:5px 0; font-size:13px; color:#888;">
-                             Total: ₱${o.totalPrice} <br> Note: ${o.personalization || "None"}
+                             Total: ₱${o.totalPrice || o.price} <br> 
+                             Note: ${o.personalization || "None"}
                         </p>
-                        <span style="font-size:12px; font-weight:700; color:${statusColor}">Status: ${o.status}</span>
+                        <div style="margin-top:5px;">
+                            <span style="background:${statusBg}; color:${statusColor}; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; border:1px solid ${statusColor}30;">
+                                ${o.status}
+                            </span>
+                        </div>
                     </div>
                 </div>
             `;
         });
+    }, (error) => {
+        // This will print the error if something is wrong
+        console.error("Order Load Error:", error);
     });
 }
-
 // --- PRODUCT CATALOG (FIXED FOR BASE64 IMAGES) ---
 async function loadProducts() {
     const container = document.getElementById('products-container');
@@ -258,4 +278,5 @@ window.sendMessage = async () => {
 };
 
 window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
 
