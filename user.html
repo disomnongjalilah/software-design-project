@@ -33,7 +33,7 @@
                 <a href="javascript:void(0)" onclick="showSection('account')">
                     <i class="fas fa-user-edit"></i> Profile Settings
                 </a>
-                <a href="javascript:void(0)" onclick="showSection('account')">
+                <a href="javascript:void(0)" onclick="showSection('order')">
                     <i class="fas fa-shopping-bag"></i> My Orders
                 </a>
                 <a href="javascript:void(0)" onclick="showSection('change-password')">
@@ -77,11 +77,12 @@
                     <p><strong>Phone:</strong> <span id="accountPhone"></span></p>
                     <button class="btn-outline" style="width:100%; margin-top:15px;" onclick="showSection('edit-details')">Edit Profile</button>
                 </div>
-                <div class="product-card" style="text-align: left; padding: 30px;">
-                    <h3>My Orders</h3>
-                    <div id="userOrders"></div>
-                </div>
             </div>
+        </div>
+    </section>
+    <section id="order" class="section" style="display:none;">
+        <div class="order-card">
+            <h3>My order</h3>
         </div>
     </section>
 
@@ -171,5 +172,6 @@
 <script type="module" src="user.js?v=101"></script>
 </body>
 </html>
+
 
 
