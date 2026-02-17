@@ -183,6 +183,39 @@ h1, h2, h3, h4 {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 40px;
 }
+
+.wishlist-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease, background 0.2s;
+    z-index: 10;
+}
+
+.wishlist-btn:hover {
+    transform: scale(1.1);
+}
+
+.wishlist-btn i {
+    color: #cccccc; /* Default Gray */
+    font-size: 16px;
+    transition: color 0.3s;
+}
+
+/* When the item is liked */
+.wishlist-btn.active i {
+    color: #e74c3c; /* Red Heart */
+}
 /* =========================================
    6. MODALS
    ========================================= */
@@ -617,6 +650,7 @@ USER DROPDOWN MENU
 .step-item.active .step-text {
     color: var(--primary);
 }
+
 
 
 
