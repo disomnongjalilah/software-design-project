@@ -202,37 +202,80 @@ window.deleteProduct = async (id) => {
 // ==========================================
 // 4. ORDERS MANAGEMENT (Accept/Reject Logic)
 // ==========================================
-function loadOrders() {
-    const list = document.getElementById('adminOrdersList');
-    if(!list) return;
+// --- LOAD ORDERS FOR ADMIN ---
+window.loadOrders = () => {
+    const container = document.getElementById('admin-orders-container');
+    if(!container) return;
 
+    // Listen to real-time updates
     const q = query(collection(db, "orders"), orderBy("date", "desc"));
     
     onSnapshot(q, (snapshot) => {
-        list.innerHTML = "";
-        snapshot.forEach(d => {
-            const o = d.data();
-            const statusColor = o.status === 'Accepted' ? '#27ae60' : (o.status === 'Rejected' ? '#e74c3c' : '#c06b45');
-            list.innerHTML += `
-                <tr>
-                    <td>${new Date(o.date).toLocaleDateString()}</td>
-                    <td>${o.userEmail}</td>
-                    <td>${o.productName}</td>
-                    <td>₱${o.totalPrice}</td>
-                    <td><span style="color:${statusColor}; font-weight:bold;">${o.status}</span></td>
-                    <td>
-                        <button class="btn-primary" style="padding: 5px 10px; font-size: 11px; background:#27ae60;" onclick="updateOrderStatus('${d.id}', 'Accepted')">Accept</button>
-                        <button class="btn-outline" style="padding: 5px 10px; font-size: 11px; color:#e74c3c; border-color:#e74c3c;" onclick="updateOrderStatus('${d.id}', 'Rejected')">Reject</button>
-                    </td>
-                </tr>`;
+        if (snapshot.empty) {
+            container.innerHTML = "<p>No active orders.</p>";
+            return;
+        }
+
+        container.innerHTML = "";
+        
+        snapshot.forEach(docSnap => {
+            const o = docSnap.data();
+            const id = docSnap.id;
+
+            // Generate the Dropdown Menu (Select)
+            // It automatically selects the current status
+            const statusOptions = `
+                <select onchange="updateOrderStatus('${id}', this.value)" class="status-select ${o.status.toLowerCase()}">
+                    <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                    <option value="Preparing" ${o.status === 'Preparing' ? 'selected' : ''}>Preparing</option>
+                    <option value="Ready" ${o.status === 'Ready' ? 'selected' : ''}>Ready for Pick Up</option>
+                    <option value="Completed" ${o.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                    <option value="Rejected" ${o.status === 'Rejected' ? 'selected' : ''}>Reject Order</option>
+                </select>
+            `;
+
+            container.innerHTML += `
+                <div class="order-card-admin">
+                    <div class="order-header">
+                        <span class="order-id">#${id.slice(0,6)}</span>
+                        <span class="order-date">${new Date(o.date).toLocaleDateString()}</span>
+                    </div>
+                    
+                    <div class="order-body">
+                        <img src="${o.imageUrl}" class="order-img">
+                        <div class="order-info">
+                            <h4>${o.productName}</h4>
+                            <p>Customer: ${o.userEmail}</p>
+                            <p class="price">Total: ₱${o.totalPrice}</p>
+                            <p class="note">Note: ${o.personalization || "None"}</p>
+                        </div>
+                    </div>
+
+                    <div class="order-actions">
+                        <label>Update Status:</label>
+                        ${statusOptions}
+                    </div>
+                </div>
+            `;
         });
     });
-}
+};
 
-window.updateOrderStatus = async (id, status) => {
+// --- FUNCTION TO SAVE THE STATUS ---
+window.updateOrderStatus = async (orderId, newStatus) => {
     try {
-        await updateDoc(doc(db, "orders", id), { status: status });
-    } catch(e) { console.error(e); }
+        const orderRef = doc(db, "orders", orderId);
+        
+        await updateDoc(orderRef, {
+            status: newStatus
+        });
+        
+        // Optional: Alert is annoying, so we use a console log or a toast instead
+        console.log(`Order ${orderId} updated to ${newStatus}`);
+        
+    } catch (error) {
+        alert("Error updating status: " + error.message);
+    }
 };
 
 // ==========================================
@@ -293,5 +336,6 @@ window.sendAdminMessage = async () => {
         input.value = "";
     } catch(e) { console.error(e); }
 };
+
 
 
