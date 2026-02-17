@@ -496,6 +496,128 @@ USER DROPDOWN MENU
     font-size: 1.2rem;
 }
 
+/* ADMIN ORDER CARD */
+.order-card-admin {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.order-body {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.order-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+/* STATUS DROPDOWN STYLING */
+.status-select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    max-width: 200px;
+}
+
+/* Color Coding the Dropdown */
+.status-select.pending { background: #fff3cd; color: #856404; border-color: #ffeeba; }
+.status-select.preparing { background: #e3f2fd; color: #0d47a1; border-color: #bbdefb; }
+.status-select.ready { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+.status-select.completed { background: var(--primary); color: white; border-color: var(--primary); }
+.status-select.rejected { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+
+/* ORDER TRACKER STYLES */
+.tracker-container {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+/* The Gray Line Behind */
+.steps::before {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #e0e0e0;
+    z-index: 1;
+}
+
+/* The Progress Line (Colored) */
+.progress-line {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    height: 3px;
+    background: var(--primary); /* Terracotta */
+    z-index: 1;
+    transition: width 0.4s ease;
+}
+
+.step-item {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    background: white; /* Hides the line behind the text */
+    padding: 0 5px;
+}
+
+.step-circle {
+    width: 30px;
+    height: 30px;
+    background: #fff;
+    border: 3px solid #e0e0e0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 5px;
+    font-size: 12px;
+    color: #999;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.step-text {
+    font-size: 10px;
+    color: #999;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ACTIVE STATE (Highlight) */
+.step-item.active .step-circle {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: white;
+}
+
+.step-item.active .step-text {
+    color: var(--primary);
+}
+
 
 
 
