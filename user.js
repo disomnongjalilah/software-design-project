@@ -97,64 +97,96 @@ if(passForm) {
     });
 }
 
-// --- ORDER TRACKING (REAL-TIME) ---
-// --- ORDER TRACKING (REAL-TIME) ---
 async function loadUserOrders(uid) {
-    const container = document.getElementById('order-container'); 
+    const container = document.getElementById('order-container');
     if(!container) return;
 
-    // FIX: Removed 'orderBy' temporarily so it works without an Index
-    const q = query(
-        collection(db, "orders"), 
-        where("userId", "==", uid) 
-    );
-    
+    // 1. Listen for Order Updates
+    const q = query(collection(db, "orders"), where("userId", "==", uid));
+
     onSnapshot(q, (snapshot) => {
         if (snapshot.empty) {
-            container.innerHTML = "<p style='text-align:center;'>No orders placed yet.</p>";
+            container.innerHTML = "<p style='text-align:center; padding:20px;'>No orders yet.</p>";
             return;
         }
 
         container.innerHTML = "";
-        snapshot.forEach(docSnap => {
-            const o = docSnap.data();
-            
-            // Status Color Logic
-            let statusColor = '#c06b45'; // Default Terracotta (Pending)
-            let statusBg = '#faf6f1';    // Light Cream
-            
-            if (o.status === 'Accepted') { 
-                statusColor = '#27ae60'; // Green
-                statusBg = '#eafaf1';
-            }
-            if (o.status === 'Rejected') { 
-                statusColor = '#e74c3c'; // Red
-                statusBg = '#fdedec';
-            }
-            
-            // Render Order Card
+        
+        // Sort in memory (fixes the Index Error you had before)
+        const orders = [];
+        snapshot.forEach(doc => orders.push({id: doc.id, ...doc.data()}));
+        orders.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+        orders.forEach(o => {
+            // 2. Generate the Tracker HTML
+            const trackerHTML = getTrackerHTML(o.status);
+
             container.innerHTML += `
-                <div class="product-card" style="margin-bottom:15px; padding:20px; border:1px solid #eee; display:flex; gap:15px; align-items:center; background:white;">
-                    <img src="${o.imageUrl}" style="width:80px; height:80px; object-fit:cover; border-radius:10px;">
-                    <div style="flex:1; text-align:left;">
-                        <h4 style="margin:0;">${o.productName}</h4>
-                        <p style="margin:5px 0; font-size:13px; color:#888;">
-                             Total: ₱${o.totalPrice || o.price} <br> 
-                             Note: ${o.personalization || "None"}
-                        </p>
-                        <div style="margin-top:5px;">
-                            <span style="background:${statusBg}; color:${statusColor}; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; border:1px solid ${statusColor}30;">
-                                ${o.status}
-                            </span>
+                <div class="product-card" style="margin-bottom:20px; padding:20px; border:1px solid #eee;">
+                    <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">
+                        <img src="${o.imageUrl}" style="width:70px; height:70px; object-fit:cover; border-radius:10px;">
+                        <div>
+                            <h4 style="margin:0;">${o.productName}</h4>
+                            <p style="margin:5px 0; font-size:13px; color:#888;">
+                                Total: ₱${o.totalPrice} <br> Qty: ${o.quantity}
+                            </p>
                         </div>
                     </div>
+
+                    ${trackerHTML}
                 </div>
             `;
         });
-    }, (error) => {
-        // This will print the error if something is wrong
-        console.error("Order Load Error:", error);
     });
+}
+
+// --- HELPER: Generates the Step Tracker HTML ---
+function getTrackerHTML(status) {
+    // If rejected, show a simple red badge instead of the tracker
+    if (status === 'Rejected') {
+        return `<div style="background:#fdedec; color:#e74c3c; padding:10px; border-radius:8px; text-align:center; font-weight:bold;">
+                    Order Rejected
+                </div>`;
+    }
+
+    // Define the stages
+    const stages = ["Pending", "Preparing", "Ready", "Completed"];
+    
+    // Find which step we are on (0, 1, 2, or 3)
+    // Note: 'Accepted' counts as step 0 (Pending/Placed)
+    let currentStepIndex = stages.indexOf(status);
+    if (status === 'Accepted') currentStepIndex = 0; 
+    if (currentStepIndex === -1) currentStepIndex = 0; // Default to start
+
+    // Calculate width of the colored line (0%, 33%, 66%, 100%)
+    const progressWidth = (currentStepIndex / (stages.length - 1)) * 100;
+
+    // Generate the circles
+    let stepsHTML = '';
+    stages.forEach((stage, index) => {
+        const isActive = index <= currentStepIndex ? 'active' : '';
+        const icon = index < currentStepIndex ? '✓' : (index + 1); // Checkmark for past steps
+        
+        // Rename 'Pending' to 'Placed' for better UI text
+        let label = stage === 'Pending' ? 'Placed' : stage;
+        if(label === 'Ready') label = 'Pick Up';
+
+        stepsHTML += `
+            <div class="step-item ${isActive}">
+                <div class="step-circle">${icon}</div>
+                <div class="step-text">${label}</div>
+            </div>
+        `;
+    });
+
+    return `
+        <div class="tracker-container">
+            <div class="steps">
+                <div class="progress-line" style="width: ${progressWidth}%"></div>
+                ${stepsHTML}
+            </div>
+        </div>
+    `;
 }
 // --- PRODUCT CATALOG (FIXED FOR BASE64 IMAGES) ---
 async function loadProducts() {
@@ -278,5 +310,6 @@ window.sendMessage = async () => {
 };
 
 window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
 
 
