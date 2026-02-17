@@ -484,11 +484,12 @@ USER DROPDOWN MENU
     cursor: pointer;
 }
 
-.fa-google {
+.fab fa-google {
     color: #DB4437; /* Official Google Red */
     margin-right: 10px;
     font-size: 1.2rem;
 }
+
 
 
 
