@@ -6,6 +6,7 @@ import {
     collection, getDocs, doc, getDoc, updateDoc, query, where, addDoc, orderBy, onSnapshot, setDoc, deleteDoc 
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+
 let userWishlist = new Set();
 let currentUser = null;
 let currentProduct = null;
@@ -18,6 +19,7 @@ onAuthStateChanged(auth, async (user) => {
         loadUserProfile(user.uid);
         loadUserOrders(user.uid);
         loadProducts();
+        listenForMessages();
     } else {
         window.location.href = "/"; // Redirect if not logged in
     }
@@ -290,23 +292,56 @@ window.toggleChat = () => {
     }
 };
 
-let chatListener = null; // Store listener to avoid duplicates
+let chatListener = null; 
+
 function listenForMessages() {
-    if (!currentUser || chatListener) return;
+    // 1. Ensure user is logged in
+    if (!currentUser) {
+        console.warn("Chat: No user logged in. Waiting...");
+        return;
+    }
 
-    const q = query(collection(db, "chats"), where("userId", "==", currentUser.uid), orderBy("timestamp", "asc"));
+    const container = document.getElementById('chat-messages');
+    if(!container) return;
+
+    // 2. Stop any old listener to prevent double-loading
+    if (chatListener) chatListener();
+
+    console.log("Chat: Listening for messages for UID:", currentUser.uid);
+
+    // 3. Setup the Query
+    const q = query(
+        collection(db, "chats"), 
+        where("userId", "==", currentUser.uid), 
+        orderBy("timestamp", "asc")
+    );
     
+    // 4. Start the Real-time Listener
     chatListener = onSnapshot(q, (snapshot) => {
-        const container = document.getElementById('chat-messages');
-        if(!container) return;
+        container.innerHTML = ""; // Clear current messages
+        
+        if (snapshot.empty) {
+            container.innerHTML = '<p style="text-align:center; color:#999; font-size:12px;">Start a conversation with us!</p>';
+            return;
+        }
 
-        container.innerHTML = "";
         snapshot.forEach(docSnap => {
             const m = docSnap.data();
+            // sender "user" goes on right, sender "admin" goes on left
             const side = m.sender === "user" ? "user" : "admin";
-            container.innerHTML += `<div class="msg ${side}">${m.text}</div>`;
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${side}`;
+            msgDiv.textContent = m.text;
+            container.appendChild(msgDiv);
         });
+
+        // Auto-scroll to the bottom so newest messages are visible
         container.scrollTop = container.scrollHeight;
+
+    }, (error) => {
+        console.error("Chat Listener Failed:", error);
+        // If you see a "Missing Index" error in the console, click the link provided there!
     });
 }
 
@@ -366,6 +401,7 @@ window.toggleWishlist = async (productId, btnElement) => {
 };
 
 window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
 
 
 
