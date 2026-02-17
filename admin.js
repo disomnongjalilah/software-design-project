@@ -106,43 +106,72 @@ window.addProduct = async () => {
     const fileInput = document.getElementById('addImageFile');
     const file = fileInput ? fileInput.files[0] : null;
 
-    if (!name || !price || !file) return alert("Please fill all fields and select an image.");
+    if (!name || !price || !file) {
+        return alert("Please fill all fields and select an image.");
+    }
 
     const saveBtn = document.querySelector("#addProductModal .btn-primary");
     saveBtn.disabled = true;
+    saveBtn.innerText = "Compressing...";
+
+    // Helper function to compress image
+    const compressImage = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Resize logic: Keep aspect ratio, max width 800px
+                    const maxWidth = 800;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = maxWidth;
+                    canvas.height = img.height * scaleSize;
+
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7); 
+                    resolve(dataUrl);
+                };
+                img.onerror = (error) => reject(error);
+            };
+        });
+    };
 
     try {
-        const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
-        // Switched to resumable upload to show progress
-        const uploadTask = uploadBytesResumable(storageRef, file);
+        // 1. Compress the image automatically
+        const compressedBase64 = await compressImage(file);
 
-        uploadTask.on('state_changed', 
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                saveBtn.innerText = `Uploading: ${Math.round(progress)}%`;
-            }, 
-            (error) => { alert("Upload failed: " + error.message); saveBtn.disabled = false; }, 
-            async () => {
-                const url = await getDownloadURL(uploadTask.snapshot.ref);
-                await addDoc(collection(db, "products"), {
-                    name: name,
-                    price: Number(price),
-                    stock: 10,
-                    imageUrl: url,
-                    createdAt: new Date()
-                });
-                alert("Product Added Successfully!");
-                saveBtn.innerText = "Save Product";
-                saveBtn.disabled = false;
-                
-                // Reset inputs
-                document.getElementById('addName').value = "";
-                document.getElementById('addPrice').value = "";
-                document.getElementById('addImageFile').value = "";
-                window.closeModal('addProductModal');
-            }
-        );
-    } catch(e) { alert("Error: " + e.message); saveBtn.disabled = false; }
+        saveBtn.innerText = "Saving...";
+
+        // 2. Save the small text string to Firestore
+        await addDoc(collection(db, "products"), {
+            name: name,
+            price: Number(price),
+            stock: 10,
+            imageUrl: compressedBase64,
+            createdAt: new Date()
+        });
+
+        alert("Product Added Successfully!");
+        window.closeModal('addProductModal');
+        
+        // Reset inputs
+        document.getElementById('addName').value = "";
+        document.getElementById('addPrice').value = "";
+        fileInput.value = "";
+
+    } catch (error) {
+        console.error("Error adding document: ", error);
+        alert("Error: " + error.message);
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Save Product";
+    }
 };
 
 window.deleteProduct = async (id) => {
@@ -245,3 +274,4 @@ window.sendAdminMessage = async () => {
         input.value = "";
     } catch(e) { console.error(e); }
 };
+
