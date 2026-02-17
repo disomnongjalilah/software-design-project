@@ -101,79 +101,98 @@ window.updateStock = async (id, newStock) => {
 };
 
 window.addProduct = async () => {
-    const name = document.getElementById('addName').value;
-    const price = document.getElementById('addPrice').value;
-    const fileInput = document.getElementById('addImageFile');
-    const file = fileInput ? fileInput.files[0] : null;
+    console.log("Starting addProduct..."); // Check Console
 
-    if (!name || !price || !file) {
-        return alert("Please fill all fields and select an image.");
+    // STEP 1: Get Elements
+    const nameEl = document.getElementById('addName');
+    const priceEl = document.getElementById('addPrice');
+    const fileInput = document.getElementById('addImageFile');
+
+    if (!nameEl || !priceEl || !fileInput) {
+        alert("Error: Could not find HTML elements. Check your IDs!");
+        return;
+    }
+
+    const name = nameEl.value;
+    const price = priceEl.value;
+    const file = fileInput.files[0];
+
+    // STEP 2: Check Values
+    if (!name || !price) {
+        alert("Please enter a name and price.");
+        return;
+    }
+    if (!file) {
+        alert("Please select an image file from your computer.");
+        return;
     }
 
     const saveBtn = document.querySelector("#addProductModal .btn-primary");
+    saveBtn.innerText = "Processing...";
     saveBtn.disabled = true;
-    saveBtn.innerText = "Compressing...";
 
-    // Helper function to compress image
-    const compressImage = (file) => {
+    // STEP 3: Compress Image
+    const compressImage = (imageFile) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(imageFile);
             reader.onload = (event) => {
                 const img = new Image();
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-
-                    // Resize logic: Keep aspect ratio, max width 800px
-                    const maxWidth = 800;
-                    const scaleSize = maxWidth / img.width;
-                    canvas.width = maxWidth;
+                    
+                    // Resize to 500px width
+                    const scaleSize = 500 / img.width;
+                    canvas.width = 500;
                     canvas.height = img.height * scaleSize;
 
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7); 
+                    // Compress to 0.5 (50% quality)
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
                     resolve(dataUrl);
                 };
-                img.onerror = (error) => reject(error);
             };
+            reader.onerror = (error) => reject(error);
         });
     };
 
     try {
-        // 1. Compress the image automatically
-        const compressedBase64 = await compressImage(file);
+        // STEP 4: Run Compression
+        alert("Compressing image..."); // DEBUG ALERT
+        const base64String = await compressImage(file);
+        
+        console.log("Image converted string length:", base64String.length);
 
-        saveBtn.innerText = "Saving...";
-
-        // 2. Save the small text string to Firestore
+        // STEP 5: Save to Firestore
+        alert("Saving to database..."); // DEBUG ALERT
+        
         await addDoc(collection(db, "products"), {
             name: name,
             price: Number(price),
             stock: 10,
-            imageUrl: compressedBase64,
+            imageUrl: base64String,
             createdAt: new Date()
         });
 
-        alert("Product Added Successfully!");
+        alert("SUCCESS! Product saved.");
         window.closeModal('addProductModal');
         
-        // Reset inputs
-        document.getElementById('addName').value = "";
-        document.getElementById('addPrice').value = "";
+        // Clear form
+        nameEl.value = "";
+        priceEl.value = "";
         fileInput.value = "";
 
-    } catch (error) {
-        console.error("Error adding document: ", error);
-        alert("Error: " + error.message);
+    } catch (e) {
+        console.error("FULL ERROR:", e);
+        alert("FAILED: " + e.message);
     } finally {
-        saveBtn.disabled = false;
         saveBtn.innerText = "Save Product";
+        saveBtn.disabled = false;
     }
 };
-
 window.deleteProduct = async (id) => {
     if(confirm("Are you sure?")) {
         await deleteDoc(doc(db, "products", id));
@@ -274,4 +293,5 @@ window.sendAdminMessage = async () => {
         input.value = "";
     } catch(e) { console.error(e); }
 };
+
 
