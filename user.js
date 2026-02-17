@@ -27,7 +27,7 @@ onAuthStateChanged(auth, async (user) => {
 
 // --- NAVIGATION ---
 window.showSection = (id) => {
-    ['hero', 'products', 'account', 'edit-details', 'change-password', 'order'].forEach(sec => {
+    ['hero', 'products', 'account', 'edit-details', 'change-password', 'order', 'wishlist'].forEach(sec => {
         const el = document.getElementById(sec);
         if(el) el.style.display = 'none';
     });
@@ -401,6 +401,7 @@ window.toggleWishlist = async (productId, btnElement) => {
 };
 
 window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
 
 
 
