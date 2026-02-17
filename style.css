@@ -386,20 +386,22 @@ USER DROPDOWN MENU
 }
 
 /* CUSTOMER MESSAGES (On the Right) */
-.msg.user { 
-    background: var(--primary); 
-    color: white; 
-    align-self: flex-end; /* Moves bubble to the right */
-    border-bottom-right-radius: 4px; 
+/* ADMIN PANEL SPECIFIC CHAT BUBBLES */
+#adminChatMessages .msg.admin {
+    align-self: flex-end; /* Admin replies move to the RIGHT on Admin screen */
+    background: var(--primary);
+    color: white;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 18px;
 }
 
-/* ADMIN REPLIES (On the Left) */
-.msg.admin { 
-    background: #f0f0f0; 
-    color: #333; 
-    align-self: flex-start; /* Moves bubble to the left */
-    border-bottom-left-radius: 4px; 
-}}
+#adminChatMessages .msg.user {
+    align-self: flex-start; /* Customer messages move to the LEFT on Admin screen */
+    background: #f0f0f0;
+    color: #333;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 18px;
+}
 
 /* Admin List */
 .user-tab { padding: 15px; border-radius: 12px; cursor: pointer; margin-bottom: 5px; transition: 0.2s; font-size: 0.85rem; border-bottom: 1px solid #f9f9f9; }
@@ -672,6 +674,7 @@ USER DROPDOWN MENU
 .step-item.active .step-text {
     color: var(--primary);
 }
+
 
 
 
