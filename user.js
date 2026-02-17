@@ -23,7 +23,7 @@ onAuthStateChanged(auth, async (user) => {
 
 // --- NAVIGATION ---
 window.showSection = (id) => {
-    ['hero', 'products', 'account', 'edit-details', 'change-password'].forEach(sec => {
+    ['hero', 'products', 'account', 'edit-details', 'change-password', 'order'].forEach(sec => {
         const el = document.getElementById(sec);
         if(el) el.style.display = 'none';
     });
@@ -39,6 +39,8 @@ window.logoutUser = async () => {
     await signOut(auth);
     window.location.href = "/";
 };
+
+// ---Order-----
 
 // --- PROFILE MANAGEMENT ---
 async function loadUserProfile(uid) {
@@ -225,3 +227,4 @@ window.sendMessage = async () => {
 };
 
 window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
